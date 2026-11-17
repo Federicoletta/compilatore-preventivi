@@ -1,0 +1,299 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model & Security Architecture
+// ===============================================================
+//
+// Project: preventivi-federico-coletta (Compilatore Preventivi)
+// Owner: Federico Coletta (fedecoletta@gmail.com)
+//
+// Access Control Policy:
+// - Private single-user business management application.
+// - All data access (read, create, update, delete) across all collections
+//   is strictly restricted to Federico Coletta (authenticated with verified
+//   Google email 'fedecoletta@gmail.com').
+// - Unauthenticated, anonymous, or third-party access is completely denied.
+// - Full data validation and size limits on both create and update to
+//   prevent schema pollution, data corruption, and DoS/resource exhaustion.
+//
+// Collections:
+//
+// 1. Collection: /preventivi/{preventivoId}
+//    Document ID: {preventivoId} (e.g., 'p1792683000001', alphanumeric string)
+//    Fields:
+//      - id: string (required, 1-64 chars, immutable on update, matches doc ID)
+//      - numero: string (required, 1-64 chars) - Quote number/reference
+//      - data: string (required, 8-32 chars) - Document date (e.g. YYYY-MM-DD)
+//      - validita: string (optional, 0-32 chars) - Expiration / validity date
+//      - stato: string (required, enum: 'bozza', 'inviato', 'accettato', 'rifiutato', 'annullato')
+//      - cliente: map (optional, max 15 keys) - Client details
+//      - progetto: map (optional, max 15 keys) - Project description and terms
+//      - voci: list of maps (required, max 200 items) - Line items with rates and quantities
+//      - sconto: int | float (optional, >= 0) - Discount amount
+//      - sconto_txt: string (optional, max 300 chars) - Discount description
+//      - regime: string (optional, max 100 chars) - Fiscal regime
+//      - ritenuta: int | float (optional, >= 0 && <= 100) - Withholding tax percentage
+//      - rivalsa: int | float (optional, >= 0 && <= 100) - Pension contribution percentage
+//      - iva: int | float (optional, >= 0 && <= 100) - VAT percentage
+//      - bollo: string (optional, max 50 chars) - Stamp duty setting
+//      - incluso: list (optional, max 100 items) - Included deliverables
+//      - escluso: list (optional, max 100 items) - Excluded deliverables
+//      - opzioni: list (optional, max 100 items) - Optional packages / add-ons
+//      - condizioni: list (optional, max 100 items) - Contract clauses
+//      - io: map (optional, max 15 keys) - Professional issuer profile (CF, IBAN, etc.)
+//      - totale: int | float (optional) - Document total amount
+//      - modificato: string (optional, max 64 chars) - Last modification ISO timestamp
+//      - driveFileId: string (optional, max 128 chars) - Google Drive File ID
+//      - driveUrl: string (optional, max 500 chars) - Google Drive web view URL
+//      - driveSavedAt: string (optional, max 64 chars) - Google Drive ISO timestamp
+//      - cestinato: bool (optional) - Soft-deletion flag
+//      - eliminatoIl: string | null (optional, max 64 chars) - Soft-deletion ISO timestamp
+//      - annullamento: map (optional, max 10 keys) - Cancellation details/audit map
+//
+// 2. Collection: /config/{configId}
+//    Document ID: {configId} (e.g., 'listino', 'impostazioni')
+//    Fields:
+//      - data: map (optional) - Container for settings or price list data
+//      - items: list (optional, max 1000 items) - Price list / config items
+//      - modificato: string (optional, max 64 chars) - ISO timestamp
+//      - version: int | string (optional) - Version indicator
+//      - tipo: string (optional, max 64 chars) - Configuration type
+//
+// 3. Collection: /clienti/{clienteId}
+//    Document ID: {clienteId} (e.g., 'cli_1700000000000_abc123', alphanumeric string)
+//    Fields:
+//      - id: string (required, 1-64 chars, immutable on update, matches doc ID)
+//      - nome: string (required, 1-200 chars) - Client company or individual name
+//      - ref: string (optional, max 200 chars) - Contact person / reference
+//      - indirizzo: string (optional, max 300 chars) - Physical / legal address
+//      - piva: string (optional, max 50 chars) - Partita IVA
+//      - cf: string (optional, max 50 chars) - Codice Fiscale
+//      - sdi: string (optional, max 20 chars) - SDI recipient code
+//      - pec: string (optional, max 150 chars) - PEC email address
+//      - email: string (optional, max 150 chars) - Contact email address
+//      - tel: string (optional, max 50 chars) - Phone number
+//      - note: string (optional, max 2000 chars) - Notes / remarks
+//      - creato: string (optional, max 64 chars) - Creation timestamp
+//      - modificato: string (optional, max 64 chars) - Last modification timestamp
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Global Helper Functions
+    // ===============================================================
+
+    // Check if the user is authenticated with Firebase Authentication
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the caller is the verified sole owner (Federico Coletta)
+    function isAuthorizedOwner() {
+      return isAuthenticated() &&
+             request.auth.token.email == 'fedecoletta@gmail.com' &&
+             request.auth.token.email_verified == true;
+    }
+
+    // Helper to test if a value is numeric (int or float)
+    function isNum(val) {
+      return val is int || val is float;
+    }
+
+    // Validate required fields exist in request
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate no unauthorized / unexpected fields are present
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Preventivi Domain Validator
+    // ===============================================================
+
+    function isValidPreventivo(preventivoId) {
+      let d = request.resource.data;
+      let allowedFields = [
+        'id', 'numero', 'data', 'validita', 'stato', 'cliente', 'progetto', 'voci',
+        'sconto', 'sconto_txt', 'regime', 'ritenuta', 'rivalsa', 'iva', 'bollo',
+        'incluso', 'escluso', 'opzioni', 'condizioni', 'io', 'totale', 'modificato',
+        'driveFileId', 'driveUrl', 'driveSavedAt',
+        'cestinato', 'eliminatoIl', 'annullamento'
+      ];
+      let requiredFields = ['id', 'numero', 'data', 'stato', 'voci'];
+      let validStatuses = ['bozza', 'inviato', 'accettato', 'rifiutato', 'annullato'];
+
+      return hasRequiredFields(requiredFields) &&
+             hasOnlyAllowedFields(allowedFields) &&
+
+             // Core identifier & numbering
+             d.id is string && d.id.size() >= 1 && d.id.size() <= 64 &&
+             d.id == preventivoId &&
+             d.numero is string && d.numero.size() >= 1 && d.numero.size() <= 64 &&
+             d.data is string && d.data.size() >= 8 && d.data.size() <= 32 &&
+             (!('validita' in d) || (d.validita is string && d.validita.size() <= 32)) &&
+             d.stato is string && d.stato in validStatuses &&
+
+             // Complex structured fields with bounded sizes
+             (!('cliente' in d) || (d.cliente is map && d.cliente.keys().size() <= 15)) &&
+             (!('progetto' in d) || (d.progetto is map && d.progetto.keys().size() <= 15)) &&
+             d.voci is list && d.voci.size() <= 200 &&
+
+             // Financial and tax fields
+             (!('sconto' in d) || (isNum(d.sconto) && d.sconto >= 0)) &&
+             (!('sconto_txt' in d) || (d.sconto_txt is string && d.sconto_txt.size() <= 300)) &&
+             (!('regime' in d) || (d.regime is string && d.regime.size() <= 100)) &&
+             (!('ritenuta' in d) || (isNum(d.ritenuta) && d.ritenuta >= 0 && d.ritenuta <= 100)) &&
+             (!('rivalsa' in d) || (isNum(d.rivalsa) && d.rivalsa >= 0 && d.rivalsa <= 100)) &&
+             (!('iva' in d) || (isNum(d.iva) && d.iva >= 0 && d.iva <= 100)) &&
+             (!('bollo' in d) || (d.bollo is string && d.bollo.size() <= 50)) &&
+
+             // Terms, options, and contract clauses
+             (!('incluso' in d) || (d.incluso is list && d.incluso.size() <= 100)) &&
+             (!('escluso' in d) || (d.escluso is list && d.escluso.size() <= 100)) &&
+             (!('opzioni' in d) || (d.opzioni is list && d.opzioni.size() <= 100)) &&
+             (!('condizioni' in d) || (d.condizioni is list && d.condizioni.size() <= 100)) &&
+
+             // Issuer info, computed total, and audit timestamp
+             (!('io' in d) || (d.io is map && d.io.keys().size() <= 15)) &&
+             (!('totale' in d) || isNum(d.totale)) &&
+             (!('modificato' in d) || (d.modificato is string && d.modificato.size() <= 64)) &&
+
+             // Google Drive integration fields
+             (!('driveFileId' in d) || (d.driveFileId is string && d.driveFileId.size() <= 128)) &&
+             (!('driveUrl' in d) || (d.driveUrl is string && d.driveUrl.size() <= 500)) &&
+             (!('driveSavedAt' in d) || (d.driveSavedAt is string && d.driveSavedAt.size() <= 64)) &&
+
+             // Soft-deletion and cancellation fields (v4.0 Cloud-First)
+             (!('cestinato' in d) || d.cestinato is bool) &&
+             (!('eliminatoIl' in d) || d.eliminatoIl == null || (d.eliminatoIl is string && d.eliminatoIl.size() <= 64)) &&
+             (!('annullamento' in d) || (d.annullamento is map && d.annullamento.keys().size() <= 10));
+    }
+
+    // ===============================================================
+    // Config Domain Validator
+    // ===============================================================
+
+    function isValidConfig(configId) {
+      let d = request.resource.data;
+      let allowedFields = ['data', 'items', 'modificato', 'version', 'tipo'];
+
+      return configId is string && configId.size() >= 1 && configId.size() <= 64 &&
+             hasOnlyAllowedFields(allowedFields) &&
+             (!('data' in d) || d.data is map) &&
+             (!('items' in d) || (d.items is list && d.items.size() <= 1000)) &&
+             (!('modificato' in d) || (d.modificato is string && d.modificato.size() <= 64)) &&
+             (!('version' in d) || (d.version is int || (d.version is string && d.version.size() <= 32))) &&
+             (!('tipo' in d) || (d.tipo is string && d.tipo.size() <= 64));
+    }
+
+    // ===============================================================
+    // Clienti Domain Validator
+    // ===============================================================
+
+    function isValidCliente(clienteId) {
+      let d = request.resource.data;
+      let allowedFields = [
+        'id', 'nome', 'ref', 'indirizzo', 'piva', 'cf', 'sdi', 'pec', 'email', 'tel', 'note', 'creato', 'modificato'
+      ];
+      let requiredFields = ['id', 'nome'];
+
+      return hasRequiredFields(requiredFields) &&
+             hasOnlyAllowedFields(allowedFields) &&
+
+             // Core identifier and name
+             d.id is string && d.id.size() >= 1 && d.id.size() <= 64 &&
+             d.id == clienteId &&
+             d.nome is string && d.nome.size() >= 1 && d.nome.size() <= 200 &&
+
+             // Optional contact, tax, and metadata fields with sensible length bounds
+             (!('ref' in d) || (d.ref is string && d.ref.size() <= 200)) &&
+             (!('indirizzo' in d) || (d.indirizzo is string && d.indirizzo.size() <= 300)) &&
+             (!('piva' in d) || (d.piva is string && d.piva.size() <= 50)) &&
+             (!('cf' in d) || (d.cf is string && d.cf.size() <= 50)) &&
+             (!('sdi' in d) || (d.sdi is string && d.sdi.size() <= 20)) &&
+             (!('pec' in d) || (d.pec is string && d.pec.size() <= 150)) &&
+             (!('email' in d) || (d.email is string && d.email.size() <= 150)) &&
+             (!('tel' in d) || (d.tel is string && d.tel.size() <= 50)) &&
+             (!('note' in d) || (d.note is string && d.note.size() <= 2000)) &&
+             (!('creato' in d) || (d.creato is string && d.creato.size() <= 64)) &&
+             (!('modificato' in d) || (d.modificato is string && d.modificato.size() <= 64));
+    }
+
+    // ===============================================================
+    // Listino Domain Validator (Scorporo Voci Listino v4.0)
+    // ===============================================================
+
+    function isValidVoceListino(voceId) {
+      let d = request.resource.data;
+      let allowedFields = [
+        'id', 'cat', 'nome', 'desc', 'unita', 'prezzo', 'ordine', 'attivo', 'creato', 'modificato'
+      ];
+      let requiredFields = ['id', 'nome', 'prezzo'];
+
+      return hasRequiredFields(requiredFields) &&
+             hasOnlyAllowedFields(allowedFields) &&
+             d.id is string && d.id.size() >= 1 && d.id.size() <= 64 &&
+             d.id == voceId &&
+             d.nome is string && d.nome.size() >= 1 && d.nome.size() <= 200 &&
+             isNum(d.prezzo) && d.prezzo >= 0 &&
+             (!('cat' in d) || (d.cat is string && d.cat.size() <= 100)) &&
+             (!('desc' in d) || (d.desc is string && d.desc.size() <= 1000)) &&
+             (!('unita' in d) || (d.unita is string && d.unita.size() <= 50)) &&
+             (!('ordine' in d) || isNum(d.ordine)) &&
+             (!('attivo' in d) || d.attivo is bool) &&
+             (!('creato' in d) || (d.creato is string && d.creato.size() <= 64)) &&
+             (!('modificato' in d) || (d.modificato is string && d.modificato.size() <= 64));
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Preventivi: Commercial quotes
+    match /preventivi/{preventivoId} {
+      allow read, delete: if isAuthorizedOwner();
+      allow create: if isAuthorizedOwner() && isValidPreventivo(preventivoId);
+      allow update: if isAuthorizedOwner() &&
+                       isValidPreventivo(preventivoId) &&
+                       request.resource.data.id == resource.data.id;
+    }
+
+    // Config: Settings, legacy configurations
+    match /config/{configId} {
+      allow read, delete: if isAuthorizedOwner();
+      allow create: if isAuthorizedOwner() && isValidConfig(configId);
+      allow update: if isAuthorizedOwner() && isValidConfig(configId);
+    }
+
+    // Clienti: Customer directory / CRM contacts
+    match /clienti/{clienteId} {
+      allow read, delete: if isAuthorizedOwner();
+      allow create: if isAuthorizedOwner() && isValidCliente(clienteId);
+      allow update: if isAuthorizedOwner() &&
+                       isValidCliente(clienteId) &&
+                       request.resource.data.id == resource.data.id;
+    }
+
+    // Listino: Standalone price list catalog items (v4.0 Decoupled)
+    match /listino/{voceId} {
+      allow read, delete: if isAuthorizedOwner();
+      allow create: if isAuthorizedOwner() && isValidVoceListino(voceId);
+      allow update: if isAuthorizedOwner() &&
+                       isValidVoceListino(voceId) &&
+                       request.resource.data.id == resource.data.id;
+    }
+
+    // ===============================================================
+    // Default Deny Rule (Fallback)
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

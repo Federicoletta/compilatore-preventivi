@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="it" class="auth-locked">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+(function(){
+  try{
+    var s=localStorage.getItem("fc_tema");
+    var t=s||(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+    document.documentElement.setAttribute("data-tema",t);
+  }catch(e){}
+})();
+</script>
+
+<title>Compilatore preventivi — Federico Coletta</title>
+
+<!-- Fogli di stile modulari -->
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/dark-mode.css">
+<link rel="stylesheet" href="css/print.css">
+</head>
+<body>
+
+<div id="crash-protection-banner" style="display:none;background:#ffebee;color:#b71c1c;border-bottom:1px solid #ef9a9a;padding:8px 16px;font-size:13px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:99999">
+  <div>
+    <strong>⚠️ Avviso:</strong> Si è verificato un errore (<span id="crash-protection-msg"></span>). I tuoi dati sono al sicuro nel backup automatico locale.
+  </div>
+  <button type="button" class="btn mini" onclick="document.getElementById('crash-protection-banner').style.display='none'" style="margin-left:12px">Chiudi</button>
+</div>
+
+<!-- Gate di Autenticazione Riservata (Attivo solo sulla Web App Online) -->
+<div id="auth-gate-overlay" class="auth-gate-overlay" style="display:none">
+  <div class="auth-gate-card">
+    <div class="auth-logo-wrap">
+      <div class="logo" id="auth-gate-logo"></div>
+      <span class="brand-pill">v3.0 Pro</span>
+    </div>
+    <h2 class="auth-gate-title">Area Riservata</h2>
+    <p class="auth-gate-desc">
+      Questo gestionale contiene preventivi, condizioni e dati fiscali riservati.<br>
+      L'accesso online è consentito esclusivamente a <strong>Federico Coletta</strong>.
+    </p>
+
+    <div id="auth-gate-feedback" class="auth-gate-feedback" style="display:none"></div>
+
+    <div class="auth-gate-actions">
+      <button type="button" id="btn-login-google" class="btn-google-login" onclick="FirebaseAuthModule.loginGoogle()">
+        <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Accedi con Google</span>
+      </button>
+    </div>
+
+    <div class="auth-gate-footer">
+      <span>🔒 Connessione protetta con crittografia Google Firebase</span>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <header class="barra">
+    <div class="logo-wrap">
+      <div class="logo" id="header-logo"></div>
+      <span class="brand-pill">v4.0 Cloud</span>
+    </div>
+    <div class="spazio"></div>
+    <div class="tabs">
+      <button id="tab-ed" class="attivo" onclick="vista('editor')">Preventivo</button>
+      <button id="tab-ar" onclick="vista('archivio')">Archivio</button>
+      <button id="tab-li" onclick="vista('listino')">Listino</button>
+      <button id="tab-cl" onclick="vista('clienti')">Clienti <span id="contatore-clienti-badge" class="badge-tab"></span></button>
+    </div>
+    <div class="spazio"></div>
+    <div class="header-right-actions">
+      <div id="user-profile-wrap" class="user-profile-wrap" style="display:none">
+        <img id="user-profile-avatar" class="user-profile-avatar" alt="Avatar" style="display:none">
+        <span id="user-profile-label" class="user-profile-label">fedecoletta@gmail.com</span>
+        <button type="button" class="btn mini chiaro btn-logout" onclick="FirebaseAuthModule.logout()" title="Esci dall'account Google">Esci</button>
+      </div>
+      <button id="btn-cloud-sync" class="btn chiaro btn-cloud-sync" onclick="FirebaseSync.salvaImmediato(true)" title="Stato Sincronizzazione Firebase Cloud (Clicca per salvare subito)">
+        <span class="cloud-dot" id="cloud-sync-dot"></span>
+        <span id="cloud-sync-txt">Salvato nel Cloud</span>
+      </button>
+
+      <!-- Dropdown Menu Strumenti -->
+      <div class="dropdown-wrap" id="wrap-menu-strumenti">
+        <button type="button" id="btn-menu-strumenti" class="btn chiaro" onclick="toggleMenuStrumenti(event)" title="Strumenti, Importazione e Backup">
+          <span>⚙️ Strumenti ▾</span>
+        </button>
+        <div class="dropdown-menu" id="menu-dropdown-strumenti" style="display:none">
+          <label class="dropdown-item" style="cursor:pointer;margin:0" title="Importa ed apri un preventivo JSON generato o modificato">
+            <span>📥 Importa JSON (Preventivo / Backup)</span>
+            <input type="file" accept="application/json" style="display:none" onchange="importaBackup(this); chiudiMenuStrumenti();">
+          </label>
+          <button type="button" class="dropdown-item" onclick="esportaBackup(); chiudiMenuStrumenti();" title="Scarica una copia di sicurezza completa in formato JSON">
+            💾 Esporta Backup Completo (.json)
+          </button>
+          <button type="button" class="dropdown-item" onclick="sincronizzaClientiDaArchivio(false); chiudiMenuStrumenti();" title="Estrai e aggiorna i contatti della rubrica clienti dall'archivio preventivi">
+            🔄 Sincronizza Clienti da Archivio
+          </button>
+        </div>
+      </div>
+
+      <button id="btn-tema" class="btn chiaro btn-tema" onclick="toggleTema()" title="Cambia tema chiaro/scuro" aria-label="Cambia tema">
+        <span class="icona-tema">🌙</span><span class="testo-tema">Dark</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= EDITOR ================= -->
+  <main class="pagina" id="vista-editor">
+    <div class="editor-layout-grid">
+      <!-- Colonna Principale: Form & Tabelle -->
+      <div class="editor-main-col">
+        <!-- Barra Rapida di Navigazione (Jump Stepper) -->
+        <nav class="nav-sezioni-rapida" aria-label="Navigazione rapida sezioni">
+          <a href="#sec-documento" class="pill-nav"><span>📄</span> Documento & Cliente</a>
+          <a href="#sec-progetto" class="pill-nav"><span>🎯</span> Specifiche Progetto</a>
+          <a href="#sec-voci" class="pill-nav"><span>🎬</span> Voci & Compensi</a>
+          <a href="#sec-condizioni" class="pill-nav"><span>📋</span> Condizioni & Firme</a>
+          <div class="nav-history-wrap" style="margin-left:auto;display:inline-flex;gap:6px;align-items:center">
+            <button type="button" id="btn-undo" class="btn mini" onclick="editorUndo()" title="Annulla ultima modifica (Ctrl+Z)" disabled style="opacity:0.4;padding:3px 8px;font-size:11.5px">↶ Annulla</button>
+            <button type="button" id="btn-redo" class="btn mini" onclick="editorRedo()" title="Ripristina modifica (Ctrl+Y)" disabled style="opacity:0.4;padding:3px 8px;font-size:11.5px">↷ Ripristina</button>
+          </div>
+        </nav>
+
+<div class="scheda" id="sec-documento">
+      <h2>Documento</h2>
+      <div class="griglia g3">
+        <label class="campo">Numero
+          <input id="numero" placeholder="FC_2026_01">
+        </label>
+        <label class="campo">Data
+          <input id="data" type="date" onchange="aggiornaValidita()">
+        </label>
+        <label class="campo">Valido fino al
+          <input id="validita" type="date">
+        </label>
+      </div>
+      <input type="hidden" id="stato" value="bozza">
+    </div>
+
+    <div class="scheda" id="sec-cliente">
+      <h2>Cliente</h2>
+      <div class="griglia g2">
+        <label class="campo">Ragione sociale<input id="cl_nome" list="rubrica-clienti" autocomplete="off" placeholder="Cantina Valle Ariccia S.r.l."></label>
+        <label class="campo">Referente<input id="cl_ref" placeholder="Marta Renzi, marketing"></label>
+        <label class="campo">Indirizzo<input id="cl_indirizzo" placeholder="Via dei Colli 42, 00040 Ariccia (RM)"></label>
+        <label class="campo">P. IVA / C.F.<input id="cl_piva" placeholder="P. IVA 01234567890"></label>
+        <label class="campo">Email<input id="cl_email" placeholder="marta.renzi@valleariccia.it"></label>
+        <label class="campo">Telefono<input id="cl_tel" placeholder="06 1234567"></label>
+      </div>
+      <datalist id="rubrica-clienti"></datalist>
+  <datalist id="categorie-listino"></datalist>
+  <datalist id="unita-listino"></datalist>
+      <div class="aiuto" style="margin-top:10px">Rubrica automatica dai preventivi archiviati: scegliendo un cliente già utilizzato, tutti i dati verranno compilati automaticamente.</div>
+      <div id="rubrica-feedback" class="rubrica-feedback-box" style="display:none;margin-top:10px">
+        <span class="rf-badge">✓ Compilato da archivio</span>
+        <span id="rubrica-info" class="rf-text"></span>
+        <button type="button" class="btn mini rf-btn" id="btn-cambia-scheda-cliente" style="display:none" onclick="apriSceltaSchedaCliente()">Cambia versione...</button>
+      </div>
+      <div id="rubrica-azioni" style="display:none"></div>
+    </div>
+
+    <div class="scheda" id="sec-progetto">
+      <h2>Progetto</h2>
+      <div class="griglia g2">
+        <label class="campo">Titolo<input id="pr_titolo" placeholder="RADICI — Valle Ariccia"></label>
+        <label class="campo">Tipologia<input id="pr_tipo" placeholder="Documentario di brand + reel verticali"></label>
+        <label class="campo">Location<input id="pr_luogo" placeholder="Cantina e vigneti, Ariccia (RM)"></label>
+        <label class="campo">Giornate<input id="pr_giornate" placeholder="2 giornate di ripresa"></label>
+        <label class="campo">Consegna<input id="pr_consegna" placeholder="entro il 30 settembre 2026"></label>
+        <label class="campo">Apertura lettera<input id="pr_saluto" placeholder="Gentile Marta,"></label>
+      </div>
+      <label class="campo" style="margin-top:12px">Introduzione
+        <textarea id="pr_intro" placeholder="Una o due righe che riassumono l'obiettivo del lavoro con le parole del cliente."></textarea>
+      </label>
+    </div>
+
+    <div class="scheda" id="sec-voci">
+      <h2>Voci di preventivo</h2>
+      <table class="ed">
+        <thead>
+          <tr><th class="col-m"></th><th>Voce e descrizione</th><th class="n col-q">Q.tà</th><th class="n col-p">Prezzo</th>
+              <th class="n col-t">Totale</th><th class="col-x"></th></tr>
+        </thead>
+        <tbody id="corpo-voci"></tbody>
+      </table>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <select id="sel-listino" onchange="aggiungiDaListino(this)" class="sel-listino">
+          <option value="">+ Aggiungi dal listino…</option>
+        </select>
+        <button class="btn mini" onclick="aggiungiVoce()">+ Riga vuota</button>
+        <button class="btn mini" onclick="vociTipo('doc')">Pacchetto documentario</button>
+        <button class="btn mini" onclick="vociTipo('spot')">Pacchetto spot</button>
+        <button class="btn mini" onclick="vociTipo('dop')">Giornata camera department</button>
+      </div>
+
+      <div class="griglia g2" style="margin-top:18px">
+        <label class="campo">Sconto (€)
+          <input id="sconto" class="num" type="number" step="0.01" value="0" oninput="calcola()">
+        </label>
+        <label class="campo">Dicitura sconto
+          <input id="sconto_txt" placeholder="Sconto pacchetto" oninput="calcola()">
+        </label>
+      </div>
+
+      <div class="box-regime">
+        <div class="etichetta-blocco">Regime fiscale</div>
+        <div class="griglia g4" style="margin-top:12px">
+          <label class="campo">Come fatturi
+            <select id="regime" onchange="cambiaRegime()">
+              <option value="occasionale">Prestazione occasionale</option>
+              <option value="forf5">Partita IVA · forfettario 5%</option>
+              <option value="forf15">Partita IVA · forfettario 15%</option>
+              <option value="ordinario">Partita IVA · regime ordinario</option>
+              <option value="nessuno">Nessuna imposta né ritenuta</option>
+            </select>
+          </label>
+          <label class="campo" id="c-ritenuta">Ritenuta d'acconto
+            <select id="ritenuta" onchange="calcola()">
+              <option value="20">Sì — 20%</option>
+              <option value="0">No — committente non sostituto d'imposta</option>
+            </select>
+          </label>
+          <label class="campo" id="c-rivalsa" style="display:none">Rivalsa INPS
+            <select id="rivalsa" onchange="calcola()">
+              <option value="0">Nessuna</option>
+              <option value="4">4% Gestione Separata</option>
+              <option value="2">2% · contributo cassa</option>
+            </select>
+          </label>
+          <label class="campo" id="c-iva" style="display:none">IVA
+            <select id="iva" onchange="calcola()">
+              <option value="22">22%</option>
+              <option value="10">10%</option>
+              <option value="0">Non imponibile / esente</option>
+            </select>
+          </label>
+          <label class="campo" id="c-bollo">Marca da bollo € 2,00
+            <select id="bollo" onchange="calcola()">
+              <option value="auto">Addebitata oltre € 77,47</option>
+              <option value="no">A mio carico</option>
+            </select>
+          </label>
+        </div>
+        <div class="aiuto" id="nota-regime" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <div class="scheda" id="sec-condizioni">
+      <h2>Cosa comprende</h2>
+      <div class="griglia g2">
+        <label class="campo">Incluso — una voce per riga
+          <textarea id="incluso" rows="6"></textarea>
+        </label>
+        <label class="campo">Non incluso — una voce per riga
+          <textarea id="escluso" rows="6"></textarea>
+        </label>
+      </div>
+    </div>
+
+    <div class="scheda">
+      <h2>Opzioni su richiesta</h2>
+      <table class="ed">
+        <thead><tr><th class="col-m"></th><th>Voce e descrizione</th><th class="n col-t">Prezzo</th><th class="col-x"></th></tr></thead>
+        <tbody id="corpo-opzioni"></tbody>
+      </table>
+      <div style="margin-top:12px"><button class="btn mini" onclick="aggiungiOpzione()">+ Opzione</button></div>
+    </div>
+
+    <div class="scheda">
+      <h2>Condizioni</h2>
+      <div id="corpo-condizioni" class="griglia" style="gap:10px"></div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn mini" onclick="aggiungiCondizione()">+ Condizione</button>
+        <button class="btn mini" onclick="condizioniStandard(true)">Ripristina le standard</button>
+      </div>
+    </div>
+
+    <div class="scheda" id="sec-prestatore">
+      <h2>Dati che compaiono nel documento</h2>
+      <div class="griglia g2">
+        <label class="campo">Codice fiscale<input id="io_cf" placeholder="CLTFRC00A01H501X"></label>
+        <label class="campo">Partita IVA<input id="io_piva" placeholder="da compilare quando la apri"></label>
+        <label class="campo">IBAN (solo nella nota)<input id="io_iban" placeholder="IT00 X000 0000 0000 0000 0000 000"></label>
+        <label class="campo">Indirizzo (solo nella nota)<input id="io_indirizzo" placeholder="Via …, Genzano di Roma (RM)"></label>
+      </div>
+      <div class="aiuto" style="margin-top:8px">Questi dati restano memorizzati e si ricompilano da soli nei preventivi successivi.</div>
+    </div>
+      </div>
+
+      <!-- Colonna Destra: Sidebar Sticky con Riepilogo Live e Azioni -->
+      <aside class="editor-sidebar-col">
+        <div class="sidebar-sticky-panel">
+          
+          <!-- SEZIONE 1: RIEPILOGO & STATO -->
+          <div class="sidebar-section">
+            <div class="sidebar-sec-header">
+              <span class="sec-title"><span class="sb-indicator">●</span> Riepilogo Live</span>
+              <div id="badge-stima-pagine" class="badge-stima-pagine p2" title="Stima dinamica delle pagine A4 in base al numero di voci">
+                📄 2 Pagine A4
+              </div>
+            </div>
+
+            <!-- Selettore Stato Documento: Segmented Control orizzontale compatto -->
+            <div class="stato-pills" id="stato-pills-bar">
+              <button type="button" class="pill-st bozza sel" data-val="bozza" onclick="impostaStato('bozza')">⚪ Bozza</button>
+              <button type="button" class="pill-st inviato" data-val="inviato" onclick="impostaStato('inviato')">🟡 Inviato</button>
+              <button type="button" class="pill-st accettato" data-val="accettato" onclick="impostaStato('accettato')">🟢 Accettato</button>
+              <button type="button" class="pill-st rifiutato" data-val="rifiutato" onclick="impostaStato('rifiutato')">🔴 Rifiutato</button>
+            </div>
+
+            <!-- Box Totali in Tempo Reale -->
+            <div class="sidebar-totali-box">
+              <div class="st-riga"><span>Imponibile</span><strong id="sb-t-imp">€ 0,00</strong></div>
+              <div class="st-riga sconto" id="sb-r-sconto" style="display:none"><span id="sb-t-sconto-txt">Sconto</span><span id="sb-t-sconto">− € 0,00</span></div>
+              <div class="st-riga" id="sb-r-riv" style="display:none"><span id="sb-t-riv-txt">Rivalsa INPS 4%</span><span id="sb-t-riv">€ 0,00</span></div>
+              <div class="st-riga" id="sb-r-iva" style="display:none"><span id="sb-t-iva-txt">IVA 22%</span><span id="sb-t-iva">€ 0,00</span></div>
+              <div class="st-riga" id="sb-r-bollo" style="display:none"><span>Marca da bollo</span><span id="sb-t-bollo">€ 2,00</span></div>
+              <div class="st-riga rit" id="sb-r-rit" style="display:none"><span id="sb-t-rit-txt">Ritenuta d'acconto 20%</span><span id="sb-t-rit">− € 0,00</span></div>
+              <div class="st-totale-netto">
+                <div class="st-netto-lbl">Totale preventivo</div>
+                <div class="st-netto-val" id="sb-t-netto">€ 0,00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEZIONE 2: AZIONI PRINCIPALI -->
+          <div class="sidebar-section">
+            <div class="sec-label">Azioni Principali</div>
+            <div class="sidebar-primary-actions">
+              <button type="button" class="btn btn-salva btn-lg btn-action-main" onclick="salva()">
+                <span>💾 Salva nell'archivio</span>
+                <span class="btn-kbd-hint">Ctrl+S</span>
+              </button>
+              <button type="button" class="btn pieno btn-lg btn-gdrive-side btn-action-main" id="btn-salva-gdrive" onclick="GoogleDriveModule.salvaSuDriveCorrente()" style="background:#0F9D58;border-color:#0F9D58" title="Genera il PDF e salvalo automaticamente nella tua cartella Google Drive">
+                <span>📁 Salva su Google Drive</span>
+                <span class="btn-kbd-hint" id="gdrive-status-badge">Drive</span>
+              </button>
+              <div style="display:flex;gap:6px;margin-top:2px">
+                <button type="button" class="btn chiaro btn-stampa-side" onclick="stampaPreventivo()" style="flex:1;font-size:12px;padding:7px 10px" title="Stampa o salva con il visualizzatore di sistema del browser">
+                  <span>🖨️ Stampa</span>
+                </button>
+                <button type="button" class="btn chiaro" onclick="GoogleDriveModule.scaricaPdfLocale()" style="flex:1;font-size:12px;padding:7px 10px" title="Scarica direttamente il file PDF sul dispositivo">
+                  <span>📥 Scarica PDF</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEZIONE 3: OPZIONI OUTPUT -->
+          <div class="sidebar-section">
+            <div class="sec-label">Opzioni Documento</div>
+            <div class="sidebar-compact-grid">
+              <button type="button" class="btn mini" id="btn-secondo" onclick="stampaSecondo()" title="Stampa la Nota di prestazione o Proforma">
+                Nota di prestazione
+              </button>
+              <label class="sidebar-toggle-firma-compact" title="Includi la firma autografa di Federico Coletta nel PDF">
+                <input type="checkbox" id="chk-firma-autografa" onchange="salvaPrefFirma(this.checked)">
+                <span>Firma autografa</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- SEZIONE 4: GESTIONE & STRUMENTI -->
+          <div class="sidebar-section">
+            <div class="sec-label">Gestione</div>
+            <div class="sidebar-compact-grid">
+              <button type="button" class="btn mini" onclick="nuovo()" title="Crea un nuovo preventivo vuoto">
+                + Nuovo
+              </button>
+              <button type="button" class="btn mini" onclick="controllaAzione('verifica')" title="Controlla campi mancanti, incongruenze e sconti">
+                🔍 Verifica
+              </button>
+            </div>
+            <button type="button" class="btn pericolo mini" id="btn-elimina" style="display:none;width:100%;margin-top:4px" onclick="eliminaCorrente()">
+              🗑️ Sposta nel cestino
+            </button>
+
+            <!-- Stato Salvataggio -->
+            <div class="sidebar-status-footer" id="sb-stato-salvataggio">
+              <span id="stato-salvataggio" style="color:var(--muted)">● Tutte le modifiche salvate</span>
+            </div>
+          </div>
+
+          <!-- CATEGORIA 4: SCORCIATOIE DA TASTIERA (NASCONDIBILE / COLLASSABILE) -->
+          <details class="sidebar-shortcuts-collapsible" id="dettagli-scorciatoie">
+            <summary class="sc-summary">
+              <span>⌨️ Scorciatoie veloci</span>
+              <span class="sc-arrow">▾</span>
+            </summary>
+            <div class="sc-content">
+              <div class="sc-row"><kbd>Ctrl</kbd> + <kbd>S</kbd> <span>Salva archivio</span></div>
+              <div class="sc-row"><kbd>Ctrl</kbd> + <kbd>P</kbd> <span>Stampa PDF</span></div>
+              <div class="sc-row"><kbd>Alt</kbd> + <kbd>N</kbd> <span>+ Nuova voce</span></div>
+            </div>
+          </details>
+
+        </div>
+      </aside>
+    </div>
+
+      </main>
+
+  <!-- ================= ARCHIVIO & DASHBOARD ================= -->
+  <main class="pagina" id="vista-archivio" style="display:none">
+
+    <!-- 4 TESSERE STATISTICHE / KPI -->
+    <div class="archivio-kpi-grid">
+      <div class="kpi-card kpi-accettati" onclick="impostaFiltroStatoRapido('accettato')" title="Clicca per mostrare solo gli accettati">
+        <div class="kpi-header">
+          <span class="kpi-badge badge-accettati">Accettati</span>
+          <span class="kpi-count" id="kpi-cnt-accettati">0</span>
+        </div>
+        <div class="kpi-value" id="kpi-val-accettati">€ 0,00</div>
+        <div class="kpi-sub">Fatturato confermato</div>
+      </div>
+
+      <div class="kpi-card kpi-inviati" onclick="impostaFiltroStatoRapido('inviato')" title="Clicca per mostrare solo gli inviati">
+        <div class="kpi-header">
+          <span class="kpi-badge badge-inviati">In attesa / Inviati</span>
+          <span class="kpi-count" id="kpi-cnt-inviati">0</span>
+        </div>
+        <div class="kpi-value" id="kpi-val-inviati">€ 0,00</div>
+        <div class="kpi-sub">Opportunità aperte</div>
+      </div>
+
+      <div class="kpi-card kpi-bozze" onclick="impostaFiltroStatoRapido('bozza')" title="Clicca per mostrare solo le bozze">
+        <div class="kpi-header">
+          <span class="kpi-badge badge-bozze">Bozze</span>
+          <span class="kpi-count" id="kpi-cnt-bozze">0</span>
+        </div>
+        <div class="kpi-value" id="kpi-val-bozze">0</div>
+        <div class="kpi-sub">In lavorazione</div>
+      </div>
+
+      <div class="kpi-card kpi-totale" onclick="impostaFiltroStatoRapido('')" title="Clicca per mostrare tutti i preventivi">
+        <div class="kpi-header">
+          <span class="kpi-badge badge-totale">Totale Gestito</span>
+          <span class="kpi-count" id="kpi-cnt-totale">0</span>
+        </div>
+        <div class="kpi-value" id="kpi-val-totale">€ 0,00</div>
+        <div class="kpi-sub" id="kpi-conversion">Tasso di successo: 0%</div>
+      </div>
+    </div>
+
+    <!-- BARRA CONTROLLI: FILTRI A PILLOLE + SELETTORE VISTA + RICERCA + NUOVO PREVENTIVO -->
+    <div class="archivio-toolbar">
+      <div class="archivio-pills" id="archivio-filtri-pills">
+        <!-- Generato dinamicamente da app.js -->
+      </div>
+      <div class="archivio-controls-right">
+        <!-- Selettore Vista: Cronologica o Per Cliente -->
+        <div class="archivio-view-switcher" id="archivio-view-switcher" role="group" aria-label="Modalità visualizzazione archivio">
+          <button type="button" class="btn-arch-view attiva" id="btn-view-cronologica" onclick="impostaVistaArchivio('cronologica')" title="Elenco cronologico dei preventivi">
+            📋 Cronologica
+          </button>
+          <button type="button" class="btn-arch-view" id="btn-view-cliente" onclick="impostaVistaArchivio('cliente')" title="Raggruppa preventivi per cliente">
+            👥 Per cliente
+          </button>
+        </div>
+
+        <div class="archivio-search-block">
+          <div class="archivio-search-box">
+            <span class="search-icon">🔍</span>
+            <input id="filtro" placeholder="Cerca cliente, numero, progetto..." oninput="disegnaArchivio()">
+            <button type="button" class="btn-clear-search" id="btn-clear-search" onclick="pulisciRicerca()" style="display:none" title="Cancella ricerca">✕</button>
+          </div>
+          <select id="filtro-stato" onchange="disegnaArchivio()" style="display:none">
+            <option value="">Tutti gli stati</option>
+            <option value="bozza">Bozza</option>
+            <option value="inviato">Inviato</option>
+            <option value="accettato">Accettato</option>
+            <option value="rifiutato">Rifiutato</option>
+            <option value="cestino">Cestino</option>
+          </select>
+          <button type="button" class="btn btn-primario" onclick="nuovo()">+ Nuovo preventivo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOTTORIGA CONTROLLI PER CLIENTE (ESPANDI / COMPRIMI TUTTI) -->
+    <div class="archivio-clienti-bar" id="archivio-clienti-bar" style="display:none">
+      <div class="acb-left">
+        <span class="acb-label" id="acb-clienti-count">0 clienti</span>
+        <span class="acb-sep">·</span>
+        <span class="acb-sub" id="acb-preventivi-count">0 preventivi</span>
+      </div>
+      <div class="acb-right">
+        <button type="button" class="btn mini btn-micro-chevron" onclick="espandiTuttiClienti()" title="Espandi tutte le cartelle cliente">
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          Espandi tutti
+        </button>
+        <button type="button" class="btn mini btn-micro-chevron" onclick="comprimiTuttiClienti()" title="Comprimi tutte le cartelle cliente">
+          <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+          Comprimi tutti
+        </button>
+      </div>
+    </div>
+
+    <!-- BARRA DELLE AZIONI DI GRUPPO (BULK ACTIONS) -->
+    <div class="archivio-bulk-bar" id="archivio-bulk-bar" style="display:none">
+      <div class="bulk-count">
+        <span class="bulk-num-badge" id="bulk-selected-count">0</span>
+        <span id="bulk-selected-label">preventivi selezionati</span>
+      </div>
+      <div class="bulk-actions" id="bulk-actions-container">
+        <!-- Bottoni dinamici iniettati da app.js -->
+      </div>
+    </div>
+
+    <!-- BANNER MODALITÀ CESTINO -->
+    <div class="cestino-banner" id="cestino-banner" style="display:none">
+      <div class="cb-info">
+        <span class="cb-icon">🗑️</span>
+        <div>
+          <b>Sezione Cestino</b> — <span id="cestino-sub-info">I preventivi eliminati restano conservati qui e possono essere ripristinati in qualsiasi momento nell'archivio attivo.</span>
+        </div>
+      </div>
+      <div class="cb-actions">
+        <button type="button" class="btn mini pericolo" onclick="confermaSvuotaCestino()">🧹 Svuota cestino</button>
+        <button type="button" class="btn mini" onclick="impostaFiltroStatoRapido('')">← Torna all'Archivio</button>
+      </div>
+    </div>
+
+    <!-- TABELLA CONTENITORE -->
+    <div id="lista-archivio"></div>
+    <div id="totali-archivio" style="margin-top:14px;color:var(--muted);font-size:13px"></div>
+  </main>
+
+  <!-- ================= LISTINO ================= -->
+  <main class="pagina" id="vista-listino" style="display:none">
+    <div class="scheda">
+      <h2>Listino interno</h2>
+      <div class="aiuto" style="margin-bottom:14px">
+        I tuoi prezzi di riferimento. Ogni campo è modificabile: cambia nome, descrizione, unità e importo
+        quando vuoi, le modifiche si salvano da sole su questo computer. Dal preventivo, la tendina
+        “Aggiungi dal listino” inserisce la voce già compilata, e resta comunque modificabile riga per riga.
+      </div>
+      <div class="cerca" style="margin-bottom:12px">
+        <input id="filtro-listino" placeholder="Cerca una voce del listino" oninput="disegnaListino()">
+        <button class="btn" onclick="aggiungiRigaListino()">+ Nuova voce</button>
+        <button class="btn" onclick="stampaListino()">Stampa / PDF</button>
+        <button class="btn pericolo" onclick="ripristinaListino()">Ripristina standard</button>
+      </div>
+      <table class="ed">
+        <thead>
+          <tr><th style="width:22%">Categoria</th><th>Voce e descrizione</th>
+              <th style="width:15%">Unità</th><th class="n col-p">Prezzo</th><th class="col-x"></th></tr>
+        </thead>
+        <tbody id="corpo-listino"></tbody>
+      </table>
+      <div id="stato-listino" style="margin-top:12px;color:var(--muted);font-size:12.5px"></div>
+    </div>
+  </main>
+
+  <!-- ================= ANAGRAFICA CLIENTI ================= -->
+  <main class="pagina" id="vista-clienti" style="display:none">
+    <div class="scheda">
+      <div class="vista-clienti-header">
+        <div>
+          <h2>Anagrafica Clienti</h2>
+          <div class="aiuto" style="margin-bottom:0">
+            Gestione completa dei tuoi clienti, dati fiscali, Codice SDI, PEC e storico di tutti i preventivi associati.
+          </div>
+        </div>
+        <div id="kpi-clienti-box" class="kpi-clienti-box"></div>
+      </div>
+
+      <div class="cerca" style="margin:14px 0 16px 0">
+        <input id="cerca-cliente" placeholder="Cerca cliente per nome, referente, P.IVA, email..." oninput="filtraClienti(this.value)">
+        <button class="btn primario" onclick="apriModaleCliente()">+ Nuovo Cliente</button>
+        <button class="btn chiaro" onclick="sincronizzaClientiDaArchivio(true)" title="Importa o aggiorna automaticamente i clienti dai preventivi archiviati">🔄 Aggiorna dai Preventivi</button>
+      </div>
+
+      <div id="elenco-clienti-container"></div>
+    </div>
+  </main>
+</div>
+
+<div id="stampa"></div>
+<div id="msg"></div>
+
+<!-- Libreria Generazione PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!-- Firebase SDK per Web App (Autenticazione Google & Cloud Firestore) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<!-- Moduli JavaScript -->
+<script src="js/core.js"></script>
+<script src="js/validator.js"></script>
+<script src="js/config.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/calculations.js"></script>
+<script src="js/storage-safety.js"></script>
+<script src="js/clients.js"></script>
+<script src="js/firebase-auth.js"></script>
+<script src="js/firebase-sync.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/price-list.js"></script>
+<script src="js/print-engine.js"></script>
+<script src="js/google-drive.js"></script>
+<script src="js/archive.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

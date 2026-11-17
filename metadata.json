@@ -1,0 +1,6 @@
+{
+  "name": "Compilatore Preventivi — Federico Coletta",
+  "description": "Applicazione standalone per la redazione, gestione, calcolo e stampa in formato PDF A4 di preventivi professionali per Direzione della Fotografia, Riprese e Video.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
