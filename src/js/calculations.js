@@ -154,6 +154,10 @@
       // 2. Box totali nella sidebar live
       calc.aggiornaPannelloTotali("sb-", t, scontoTxt);
 
+      // 2b. Box totale nella barra mobile rapida
+      const mobNetto = document.getElementById("mob-t-netto");
+      if(mobNetto) mobNetto.textContent = window.euro(t.netto);
+
       // 3. Etichetta del secondo pulsante (Proforma vs Nota)
       const labelSecondo = calc.conPartitaIva() ? "Proforma" : "Nota di prestazione";
       const bSec = document.getElementById("btn-secondo");

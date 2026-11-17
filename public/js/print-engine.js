@@ -282,6 +282,20 @@ function stampaPreventivoVerificato(){
   window.print();
 }
 
+function stampaPreventivoArchivio(id){
+  const tutti = (typeof archivio === "function" ? archivio() : []);
+  const p = tutti.find(x => x.id === id);
+  if(!p) {
+    if(typeof avviso === "function") avviso("Preventivo non trovato.");
+    return;
+  }
+  const t = (typeof totaliPreventivo === "function" ? totaliPreventivo(p) : totali());
+  const htmlPagine = generaHtmlPaginePreventivo(p, t);
+  document.getElementById("stampa").innerHTML = htmlPagine;
+  document.title = (typeof nomeFileDocumento === "function" ? nomeFileDocumento("Preventivo", p) : (p.numero || "Preventivo")).replace(/\.pdf$/i, "");
+  window.print();
+}
+
 function stampaSecondoVerificato(p){
   if(!p) p = raccogli();
   const t = (typeof totaliPreventivo === "function" ? totaliPreventivo(p) : totali());
@@ -289,7 +303,7 @@ function stampaSecondoVerificato(p){
   const reg = p.regime || (typeof regimeAttivo === "function" ? regimeAttivo() : "occasionale");
   const pIva = ["forf5", "forf15", "ordinario"].includes(reg);
   const tipoDoc = pIva ? "Proforma" : "NotaPrestazione";
-  document.title = nomeFileDocumento(tipoDoc,p).replace(/\.pdf$/i,"");
+  document.title = (typeof nomeFileDocumento === "function" ? nomeFileDocumento(tipoDoc, p) : tipoDoc).replace(/\.pdf$/i,"");
   window.print();
 }
 
@@ -297,6 +311,9 @@ if(typeof window !== 'undefined'){
   window.generaHtmlPaginePreventivo = generaHtmlPaginePreventivo;
   window.generaHtmlSecondoDocumento = generaHtmlSecondoDocumento;
   window.pieded = pieded;
+  window.stampaPreventivoArchivio = stampaPreventivoArchivio;
+  window.stampaPreventivoVerificato = stampaPreventivoVerificato;
+  window.stampaSecondoVerificato = stampaSecondoVerificato;
 }
 if(typeof window !== 'undefined' && window.App){
   window.App.print = {

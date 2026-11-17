@@ -162,7 +162,7 @@ function stampaPreventivo(){controllaAzione("stampa");}
 function stampaSecondo(){controllaAzione("nota");}
 function controllaAzione(modalita){
   const p=raccogli(), r=verificaPreventivo(p,{modalita});
-  const esegui=()=>{try{({salva:salvaVerificato,stampa:stampaPreventivoVerificato,nota:stampaSecondoVerificato})[modalita]?.();}catch(e){alert("Operazione non completata: "+e.message);}};
+  const esegui=()=>{try{({salva:salvaVerificato,stampa:stampaPreventivoVerificato,nota:stampaSecondoVerificato})[modalita]?.();}catch(e){if(typeof avviso === "function") avviso("Operazione non completata: "+e.message); else console.error(e);}};
   if(modalita!=="verifica"&&!r.errori.length&&!r.avvisi.length){esegui();return;}
   const sezioni=[["errori","✕","Errori da correggere"],["avvisi","!","Avvisi da verificare"],["suggerimenti","i","Suggerimenti"]];
   const contenuto=`<p><b>${esc(p.numero||"Senza numero")}</b> · ${esc(p.cliente.nome||"Cliente non compilato")}<br>${esc(p.progetto.titolo||"Progetto senza titolo")} · ${esc(p.stato)} · Netto ${esc(euro(totali().netto))}</p>`+

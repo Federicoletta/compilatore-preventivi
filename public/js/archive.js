@@ -662,7 +662,7 @@
               <td><span class="stato ${esc(p.stato || "bozza")}">${esc(p.stato || "bozza")}</span></td>
               <td class="imp">${euro(p.totale || 0)}</td>
               <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
-                ${p.driveUrl ? `<a href="${esc(p.driveUrl)}" target="_blank" class="btn mini" style="color:#0F9D58;border-color:rgba(15,157,88,0.4);text-decoration:none" title="Apri il PDF salvato su Google Drive">📁 Drive</a>` : `<button type="button" class="btn mini" onclick="GoogleDriveModule.salvaPreventivoDaArchivio('${p.id}')" title="Genera il PDF e salvalo in Google Drive">📁 +Drive</button>`}
+                <button type="button" class="btn mini" onclick="stampaPreventivoArchivio('${p.id}')" title="Stampa o salva come PDF A4">🖨️ Stampa PDF</button>
                 <button type="button" class="btn mini" onclick="apri('${p.id}')" title="Apri nell'editor">Apri</button>
                 <button type="button" class="btn mini" onclick="duplica('${p.id}')" title="Duplica come nuovo preventivo">Duplica</button>
                 <button type="button" class="btn mini pericolo" onclick="confermaSpostaNelCestino('${p.id}')" title="Sposta nel cestino">🗑️</button>
@@ -722,7 +722,7 @@
         <td><span class="stato ${esc(p.stato || "bozza")}">${esc(p.stato || "bozza")}</span></td>
         <td class="imp">${euro(p.totale || 0)}</td>
         <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
-          ${p.driveUrl ? `<a href="${esc(p.driveUrl)}" target="_blank" class="btn mini" style="color:#0F9D58;border-color:rgba(15,157,88,0.4);text-decoration:none" title="Apri il PDF salvato su Google Drive">📁 Drive</a>` : `<button type="button" class="btn mini" onclick="GoogleDriveModule.salvaPreventivoDaArchivio('${p.id}')" title="Genera il PDF e salvalo in Google Drive">📁 +Drive</button>`}
+          <button type="button" class="btn mini" onclick="stampaPreventivoArchivio('${p.id}')" title="Stampa o salva come PDF A4">🖨️ Stampa PDF</button>
           <button type="button" class="btn mini" onclick="apri('${p.id}')" title="Apri nell'editor">Apri</button>
           <button type="button" class="btn mini" onclick="duplica('${p.id}')" title="Duplica come nuovo preventivo">Duplica</button>
           <button type="button" class="btn mini pericolo" onclick="confermaSpostaNelCestino('${p.id}')" title="Sposta nel cestino">🗑️</button>

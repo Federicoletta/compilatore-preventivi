@@ -37,16 +37,22 @@
 
 <!-- Gate di Autenticazione Riservata (Attivo solo sulla Web App Online) -->
 <div id="auth-gate-overlay" class="auth-gate-overlay" style="display:none">
-  <div class="auth-gate-card">
-    <div class="auth-logo-wrap">
-      <div class="logo" id="auth-gate-logo"></div>
-      <span class="brand-pill">v3.0 Pro</span>
+  <div class="auth-gate-container">
+    <div class="auth-gate-external-header">
+      <h1 class="auth-gate-external-title">COMPILATORE PREVENTIVI</h1>
+      <p class="auth-gate-external-sub">Federico Coletta</p>
+      <p class="auth-gate-external-role">Cinematographer &amp; Videomaker</p>
     </div>
-    <h2 class="auth-gate-title">Area Riservata</h2>
-    <p class="auth-gate-desc">
-      Questo gestionale contiene preventivi, condizioni e dati fiscali riservati.<br>
-      L'accesso online è consentito esclusivamente a <strong>Federico Coletta</strong>.
-    </p>
+    <div class="auth-gate-card">
+      <div class="auth-logo-wrap">
+        <div class="logo" id="auth-gate-logo"></div>
+        <span class="brand-pill">v4.0 Cloud</span>
+      </div>
+      <h2 class="auth-gate-title">Area Riservata</h2>
+      <p class="auth-gate-desc">
+        Gestionale professionale per la redazione, il calcolo fiscale e l'archiviazione dei preventivi di produzione video.<br>
+        L'accesso cloud e la consultazione dell'archivio sono riservati esclusivamente a <strong>Federico Coletta</strong>.
+      </p>
 
     <div id="auth-gate-feedback" class="auth-gate-feedback" style="display:none"></div>
 
@@ -69,6 +75,7 @@
     <div class="auth-gate-footer">
       <span>🔒 Connessione protetta con crittografia Google Firebase</span>
     </div>
+  </div>
   </div>
 </div>
 
@@ -345,22 +352,14 @@
           <div class="sidebar-section">
             <div class="sec-label">Azioni Principali</div>
             <div class="sidebar-primary-actions">
-              <button type="button" class="btn btn-salva btn-lg btn-action-main" onclick="salva()">
+              <button type="button" class="btn btn-salva btn-lg btn-action-main" onclick="salva()" title="Salva le modifiche nell'archivio cloud">
                 <span>💾 Salva nell'archivio</span>
                 <span class="btn-kbd-hint">Ctrl+S</span>
               </button>
-              <button type="button" class="btn pieno btn-lg btn-gdrive-side btn-action-main" id="btn-salva-gdrive" onclick="GoogleDriveModule.salvaSuDriveCorrente()" style="background:#0F9D58;border-color:#0F9D58" title="Genera il PDF e salvalo automaticamente nella tua cartella Google Drive">
-                <span>📁 Salva su Google Drive</span>
-                <span class="btn-kbd-hint" id="gdrive-status-badge">Drive</span>
+              <button type="button" class="btn pieno btn-lg btn-action-main" onclick="stampaPreventivo()" title="Stampa o salva in formato PDF A4">
+                <span>🖨️ Stampa PDF</span>
+                <span class="btn-kbd-hint">Ctrl+P</span>
               </button>
-              <div style="display:flex;gap:6px;margin-top:2px">
-                <button type="button" class="btn chiaro btn-stampa-side" onclick="stampaPreventivo()" style="flex:1;font-size:12px;padding:7px 10px" title="Stampa o salva con il visualizzatore di sistema del browser">
-                  <span>🖨️ Stampa</span>
-                </button>
-                <button type="button" class="btn chiaro" onclick="GoogleDriveModule.scaricaPdfLocale()" style="flex:1;font-size:12px;padding:7px 10px" title="Scarica direttamente il file PDF sul dispositivo">
-                  <span>📥 Scarica PDF</span>
-                </button>
-              </div>
             </div>
           </div>
 
@@ -653,9 +652,7 @@
         <button type="button" class="btn mini chiaro" onclick="toggleMenuAzioniMobile()">✕</button>
       </div>
       <div class="mob-sheet-actions-list">
-        <button type="button" class="dropdown-item" onclick="GoogleDriveModule.salvaSuDriveCorrente(); toggleMenuAzioniMobile();">📁 Salva su Google Drive</button>
         <button type="button" class="dropdown-item" onclick="stampaPreventivo(); toggleMenuAzioniMobile();">🖨️ Stampa PDF</button>
-        <button type="button" class="dropdown-item" onclick="GoogleDriveModule.scaricaPdfLocale(); toggleMenuAzioniMobile();">📥 Scarica PDF locale</button>
         <button type="button" class="dropdown-item" onclick="stampaSecondo(); toggleMenuAzioniMobile();">📄 Nota di prestazione / Proforma</button>
         <button type="button" class="dropdown-item" onclick="controllaAzione('verifica'); toggleMenuAzioniMobile();">🔍 Verifica preventivo</button>
       </div>
@@ -665,9 +662,6 @@
 
 <div id="stampa"></div>
 <div id="msg"></div>
-
-<!-- Libreria Generazione PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <!-- Firebase SDK per Web App (Autenticazione Google & Cloud Firestore) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -687,7 +681,6 @@
 <script src="/js/editor.js"></script>
 <script src="/js/price-list.js"></script>
 <script src="/js/print-engine.js"></script>
-<script src="/js/google-drive.js"></script>
 <script src="/js/archive.js"></script>
 <script src="/js/theme.js"></script>
 <script src="/js/app.js"></script>
