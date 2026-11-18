@@ -1,5 +1,5 @@
 /**
- * Compilatore Preventivi — Modulo Autenticazione Riservata Google Firebase (v3.0 Pro)
+ * Compilatore Preventivi — Modulo Autenticazione Riservata Google Firebase (v4.0 Cloud)
  * Protezione dell'accesso al gestionale per l'unico utente autorizzato (Federico Coletta).
  */
 (function(window) {
@@ -152,10 +152,8 @@
           }, 45 * 60 * 1000);
         }
 
-        // Avvia sincronizzazione Firestore se online
-        if (window.FirebaseSync && typeof window.FirebaseSync.sincronizzaTutto === "function") {
-          window.FirebaseSync.sincronizzaTutto(true);
-        }
+        // I listener real-time (onSnapshot) mantengono allineati Cloud e locale
+        // senza rischiare di sovrascrivere il DB con una cache locale datata.
       } catch (err) {
         console.warn("[FirebaseAuth] Errore token ID:", err);
       }
@@ -180,7 +178,20 @@
     }
   }
 
+  function isAmbienteSviluppo() {
+    if (typeof window === "undefined" || !window.location) return false;
+    const host = (window.location.hostname || "").toLowerCase();
+    const proto = (window.location.protocol || "").toLowerCase();
+    if (host === "localhost" || host === "127.0.0.1") return true;
+    if (host.endsWith(".run.app") && proto === "https:") return true;
+    return false;
+  }
+
   function accediComeProprietario() {
+    if (!isAmbienteSviluppo()) {
+      console.warn("[FirebaseAuth] Accesso Sessione Studio disabilitato in produzione.");
+      return;
+    }
     const devUser = {
       email: PROPRIETARIO_EMAIL,
       displayName: "Federico Coletta",
@@ -197,22 +208,16 @@
     }
     mostraFeedback("Apertura finestra di accesso con Google...", "info");
     const provider = new firebase.auth.GoogleAuthProvider();
-    provider.addScope("https://www.googleapis.com/auth/drive.file");
     provider.setCustomParameters({ prompt: "select_account" });
 
-    firebase.auth().signInWithPopup(provider).then(result => {
-      if (result && result.credential && result.credential.accessToken) {
-        sessionStorage.setItem("gdrive_access_token", result.credential.accessToken);
-        sessionStorage.setItem("gdrive_token_time", Date.now().toString());
-      }
-    }).catch(err => {
+    firebase.auth().signInWithPopup(provider).catch(err => {
       console.warn("[FirebaseAuth] Errore popup:", err);
       if (err.code === "auth/popup-blocked") {
         firebase.auth().signInWithRedirect(provider);
       } else if (err.code !== "auth/popup-closed-by-user") {
         let msg = "Impossibile completare l'accesso: " + err.message;
-        if (err.code === "auth/unauthorized-domain") {
-          msg += "<br><br><span style='font-size:12.5px;color:#94a3b8'>Il dominio di anteprima non è ancora presente nella whitelist Authorized Domains di Firebase. Puoi utilizzare il pulsante 'Entra come Federico Coletta (Sessione Studio)' qui sotto per accedere immediatamente.</span>";
+        if (err.code === "auth/unauthorized-domain" && isAmbienteSviluppo()) {
+          msg += "<br><br><span style='font-size:12.5px;color:#94a3b8'>Il dominio di anteprima non è ancora presente nella whitelist Authorized Domains di Firebase. Puoi utilizzare il pulsante di accesso debug locale qui sotto.</span>";
         }
         mostraFeedback(msg, "errore");
       } else {
@@ -235,6 +240,15 @@
 
   function inizializza() {
     impostaGateVisibile(true);
+
+    const btnDev = document.getElementById("btn-login-dev");
+    if (btnDev) {
+      if (isAmbienteSviluppo()) {
+        btnDev.style.display = "flex";
+      } else {
+        btnDev.remove();
+      }
+    }
 
     let tentativi = 0;
     function avviaAuth() {
@@ -260,14 +274,18 @@
     avviaAuth();
   }
 
-  window.FirebaseAuthModule = {
+  const exportedAuth = {
     inizializza,
     loginGoogle,
     logout,
-    accediComeProprietario,
     getUtente: () => utenteCorrente,
     PROPRIETARIO_EMAIL
   };
+  if (isAmbienteSviluppo()) {
+    exportedAuth.accediComeProprietario = accediComeProprietario;
+  }
+
+  window.FirebaseAuthModule = exportedAuth;
 
   if (window.App) {
     window.App.auth = window.FirebaseAuthModule;

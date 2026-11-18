@@ -35,50 +35,7 @@ const CHIAVE = "fc_preventivi_v1";
 const CHIAVE_IO = "fc_dati_personali_v1";
 const CHIAVE_LISTINO = "fc_listino_v1";
 
-const LISTINO_STD = [
-  ["Pre-produzione","Sopralluogo e piano di lavorazione","Sopralluogo in location, scaletta narrativa, lista inquadrature e piano di lavorazione.","forfait",350],
-  ["Pre-produzione","Trattamento e storyboard","Trattamento creativo, storyboard e lista inquadrature per spot e branded content.","forfait",450],
-  ["Pre-produzione","Casting e scouting location","Ricerca e selezione di volti e location, con provini e foto di riferimento.","forfait",300],
-
-  ["Riprese","Giornata di ripresa completa","Direzione della fotografia e operatore di macchina, fino a 10 ore. Attrezzatura camera, ottiche, luci e audio incluse.","giornata",650],
-  ["Riprese","Giornata spot con set luci","Direzione della fotografia con set luci strutturato, fino a 10 ore.","giornata",750],
-  ["Riprese","Giornata come direttore della fotografia","Direzione della fotografia in troupe già strutturata, fino a 10 ore. Attrezzatura non inclusa.","giornata",450],
-  ["Riprese","Giornata come operatore di macchina","Operatore con propria attrezzatura camera, fino a 10 ore.","giornata",350],
-  ["Riprese","Mezza giornata","Fino a 5 ore consecutive, stessa dotazione della giornata intera.","mezza giornata",400],
-  ["Riprese","Ora aggiuntiva","Oltre le 10 ore di lavorazione concordate.","ora",60],
-  ["Riprese","Seconda camera presidiata","Camera aggiuntiva con operatore per la stessa giornata.","giornata",300],
-  ["Riprese","Intervista in studio o in sede","Set a due camere, luci e microfoni, fino a 4 ore.","forfait",480],
-
-  ["Eventi e convegni","Giornata di ripresa evento aziendale","Copertura di convegni, congressi e eventi aziendali: due camere, audio dal mixer di sala e microfoni ambiente, fino a 8 ore. Comprende il montaggio del video di sintesi.","giornata",600],
-  ["Eventi e convegni","Mezza giornata evento","Copertura fino a 4 ore consecutive, stessa dotazione della giornata intera.","mezza giornata",380],
-  ["Eventi e convegni","Registrazione integrale degli interventi","Montaggio dei singoli interventi con slide sincronizzate e sigla, oltre al video di sintesi.","cad",90],
-
-  ["Teatro e live","Ripresa multicamera dello spettacolo","Tre camere, regia in ripresa e audio dal mixer di sala. Spettacolo intero.","forfait",900],
-  ["Teatro e live","Camera aggiuntiva","Quarta camera presidiata o camera fissa aggiuntiva.","cad",250],
-  ["Teatro e live","Registrazione audio dedicata","Presa diretta dal mixer di sala più microfoni ambiente, sincronizzata al video.","forfait",150],
-  ["Teatro e live","Ripresa della prova generale","Seconda registrazione come sicurezza e per i controcampi.","forfait",350],
-  ["Teatro e live","Montaggio multicamera dello spettacolo","Sincronizzazione, montaggio multicamera, color e mix audio.","forfait",600],
-  ["Teatro e live","Trailer dello spettacolo","Promo da 60-90 secondi ricavato dal materiale girato.","cad",250],
-  ["Teatro e live","Foto di scena","Scatti durante lo spettacolo, selezione ed editing di 30 immagini.","forfait",250],
-
-  ["Post-produzione","Montaggio, color e sound","Montaggio del film principale, color grading in DaVinci Resolve, sound design e due revisioni.","forfait",900],
-  ["Post-produzione","Montaggio spot","Versioni da 15, 30 e 60 secondi con color grading e sound design.","forfait",850],
-  ["Post-produzione","Color grading su montaggio fornito","Correzione e look in DaVinci Resolve su timeline già montata.","giornata",400],
-  ["Post-produzione","Reel verticale 9:16","Pezzo da 20-30 secondi ricavato dal materiale girato, con sottotitoli aperti.","cad",120],
-  ["Post-produzione","Sottotitoli","File SRT o sottotitoli aperti, in italiano o inglese.","cad",60],
-  ["Post-produzione","Grafiche e titoli","Sigla, lower third e titoli di coda coordinati.","forfait",200],
-  ["Post-produzione","Revisione extra","Oltre i due giri di revisione compresi nel preventivo.","cad",90],
-  ["Post-produzione","Musica su licenza","Brano da libreria con licenza commerciale, a partire da.","cad",50],
-
-  ["Attrezzatura e extra","Noleggio kit luci","Set luci LED con stativi, bandiere e diffusori.","giornata",150],
-  ["Attrezzatura e extra","Slider o gimbal","Movimenti di macchina aggiuntivi.","giornata",80],
-  ["Attrezzatura e extra","Radiomicrofoni","Coppia di radiomicrofoni con registratore.","giornata",60],
-  ["Attrezzatura e extra","Trasmissione video wireless","Monitor di regia e trasmettitore wireless per il set.","giornata",90],
-  ["Attrezzatura e extra","Trasferta","Oltre i 50 km da Genzano di Roma, 0,35 euro al km.","km",0.35],
-  ["Attrezzatura e extra","Vitto e alloggio","Riprese fuori sede con pernottamento, a consuntivo.","forfait",0],
-  ["Attrezzatura e extra","Consegna urgente","Consegna entro 72 ore dalla fine delle riprese, maggiorazione del 25%.","forfait",0],
-  ["Attrezzatura e extra","Diritti d'uso estesi","Utilizzo pubblicitario, broadcast o oltre i 24 mesi, maggiorazione del 30%.","forfait",0]
-];
+const LISTINO_STD = [];
 
 const CONDIZIONI_STD = [
   ["Validità","Il presente preventivo è valido 30 giorni dalla data di emissione."],

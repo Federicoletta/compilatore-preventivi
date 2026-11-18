@@ -250,30 +250,53 @@ function importaBackup(input){
   const f=input.files[0];if(!f)return;
   const reader=new FileReader();
   reader.onerror=()=>{alert("Impossibile leggere il file.");input.value="";};
-  reader.onload=()=>{
+  reader.onload=async ()=>{
     try{
       let d=JSON.parse(reader.result);
       if(Array.isArray(d)) d={preventivi:d};
       // Supporto sia per singoli file preventivo diretti che per backup completi
-      if(oggetto(d) && !d.preventivi && (d.numero || d.progetto || d.voci)){
+      if(oggetto(d) && !d.preventivi && (d.numero || d.progetto || d.voci || d.cliente)){
         d = { tipo: "backup-compilatore-preventivi", versione: 2, preventivi: [d] };
       }
-      if(!oggetto(d)||!Array.isArray(d.preventivi)||!d.preventivi.every(recordValido))throw Error("Struttura dei preventivi non valida.");
+      if(!oggetto(d)||!Array.isArray(d.preventivi))throw Error("Struttura dei preventivi non valida.");
+      if(typeof sanificaPreventivo === "function"){
+        d.preventivi = d.preventivi.map(p => {
+          const needsNorm = oggetto(p) && (!recordValido(p) || (typeof p.id === "string" && p.id.length > 64) || !String(p.numero || "").trim());
+          if(needsNorm && (p.numero || p.progetto || p.cliente || (Array.isArray(p.voci) && p.voci.length))){
+            return sanificaPreventivo(p);
+          }
+          return p;
+        });
+      }
+      if(!d.preventivi.every(recordValido))throw Error("Struttura dei preventivi non valida.");
       if(d.versione!==undefined&&d.versione!==2)throw Error("Versione backup non supportata.");
       if(d.versione===2&&d.tipo!=="backup-compilatore-preventivi")throw Error("Tipo di backup non riconosciuto.");
       if(d.io!==undefined&&!oggetto(d.io))throw Error("Dati personali non validi.");
       if(d.listino!==undefined&&!listinoValido(d.listino))throw Error("Listino non valido.");
       if(d.cestino!==undefined&&(!Array.isArray(d.cestino)||!d.cestino.every(elementoCestinoValido)))throw Error("Cestino non valido.");
-      const a=archivio().slice();let aggiunti=0,aggiornati=0;
-      const ids=new Set(),numeri=new Set();
+      const a=(typeof tuttiPreventiviRaw === "function" ? tuttiPreventiviRaw() : archivio()).slice();
+      let aggiunti=0,aggiornati=0;
+      const ids=new Set(),numeri=new Set(),replacedOldIds=[];
       for(const p of d.preventivi){
         const n=normalizzaNumero(p.numero);
         if(ids.has(p.id)||(n&&numeri.has(n)))throw Error("Conflitto: ID o numero duplicato nel backup.");
         ids.add(p.id);if(n)numeri.add(n);
-        const perId=a.findIndex(x=>x.id===p.id), perNumero=a.findIndex(x=>n&&normalizzaNumero(x.numero)===n);
+        const perId=a.findIndex(x=>x.id===p.id), perNumero=a.findIndex(x=>!x.cestinato && n && normalizzaNumero(x.numero)===n);
         if(perId>=0&&perNumero>=0&&perId!==perNumero)throw Error("Conflitto tra ID e numero per "+p.numero+". Nessun dato importato.");
         const i=perId>=0?perId:perNumero;
-        if(i>=0){a[i]=p;aggiornati++;}else{a.push(p);aggiunti++;}
+        const pImportato = Object.assign({}, p, { modificato: new Date().toISOString() });
+        if(i>=0){
+          if(a[i] && a[i].id && a[i].id !== pImportato.id){
+            replacedOldIds.push(a[i].id);
+          }
+          a[i]=pImportato;
+          aggiornati++;
+        }else{
+          a.unshift(pImportato);
+          aggiunti++;
+        }
+        // Aggiorna anche nell'array d.preventivi per la sync immediata verso Firestore
+        p.modificato = pImportato.modificato;
       }
       const isSingolo = d.preventivi.length === 1;
       const messaggio = isSingolo
@@ -282,28 +305,38 @@ function importaBackup(input){
       if(!confirm(messaggio))return;
       const dati={[CHIAVE]:a};
       if(d.io)dati[CHIAVE_IO]=d.io;
-      if(d.listino!==undefined){dati[CHIAVE_LISTINO]=d.listino;dati[CHIAVE_LISTINO_VISTE]=listinoStandard().map(v=>v.nome);}
+      if(d.listino!==undefined){dati[CHIAVE_LISTINO]=d.listino;}
       const unisci=(esistenti,nuovi)=>{const m=new Map(esistenti.map(x=>[x.id,x]));nuovi.forEach(x=>{if(!m.has(x.id))m.set(x.id,x);});return [...m.values()];};
       if(d.cestino)dati[CHIAVECESTINO]=unisci(cestino(),d.cestino);
       if(!scriviTransazione(dati))return;
       invalidaCacheArchivio();
       if(typeof invalidaCacheClienti === "function") invalidaCacheClienti();
-      if(typeof sincronizzaClientiDaArchivio === "function") sincronizzaClientiDaArchivio(true);
+      if(typeof sincronizzaClientiDaArchivio === "function") sincronizzaClientiDaArchivio(false);
       if(d.listino!==undefined)_listinoCache=d.listino;
       disegnaArchivio();disegnaListino();aggiornaTendinaListino();
-      
-      // Sincronizza immediatamente i preventivi e clienti importati sul cloud Firebase
+
+      // Sincronizza immediatamente i preventivi, clienti, listino e impostazioni importati sul cloud Firebase
+      let syncOk = true;
       if(window.FirebaseSync && typeof window.FirebaseSync.sincronizzaTutto === "function"){
-        window.FirebaseSync.sincronizzaTutto(true);
+        syncOk = await window.FirebaseSync.sincronizzaTutto(false, {
+          preventivi: d.preventivi,
+          eliminaIds: replacedOldIds,
+          listino: d.listino,
+          io: d.io
+        });
       }
-      
+
       if(isSingolo){
         carica(d.preventivi[0]);
         vista("editor");
-        if(typeof avviso === "function") avviso(`Preventivo ${d.preventivi[0].numero || ""} caricato nell'editor e sincronizzato nel cloud!`);
+        if(typeof avviso === "function"){
+          avviso(syncOk
+            ? `Preventivo ${d.preventivi[0].numero || ""} salvato nell'archivio e sincronizzato nel cloud!`
+            : `Preventivo ${d.preventivi[0].numero || ""} salvato nell'archivio locale (Cloud in attesa).`);
+        }
       } else {
         vista("archivio");
-        alert(`Importazione completata: ${aggiunti} aggiunti, ${aggiornati} aggiornati. Sincronizzati sul cloud.`);
+        alert(`Importazione completata: ${aggiunti} aggiunti, ${aggiornati} aggiornati. ${syncOk ? "Sincronizzati sul cloud." : "Salvati in locale (verifica connessione Cloud)."}`);
       }
     }catch(e){alert("File JSON non valido: "+e.message);}
     finally{input.value="";}

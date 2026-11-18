@@ -36,7 +36,8 @@
 
     const c = Object.assign({}, p);
 
-    c.id = stringaSicura(c.id, "p" + Date.now());
+    const idClean = stringaSicura(c.id).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
+    c.id = idClean || ("p" + Date.now() + "_" + Math.random().toString(36).slice(2, 6));
     c.numero = stringaSicura(c.numero, "FC_2026_01");
     c.data = stringaSicura(c.data, new Date().toISOString().slice(0, 10));
     c.validita = stringaSicura(c.validita, "");
@@ -116,7 +117,8 @@
       piva: stringaSicura(c.io?.piva)
     };
 
-    c.totale = numeroSicuro(c.totale, 0);
+    const totaleFallback = p?.totali ? numeroSicuro(p.totali.netto ?? p.totali.totaleDoc, 0) : 0;
+    c.totale = numeroSicuro(c.totale != null ? c.totale : totaleFallback, 0);
     c.modificato = stringaSicura(c.modificato, new Date().toISOString());
 
     // Preservazione metadati Cloud, Cestino e Annullamento

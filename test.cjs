@@ -218,8 +218,8 @@ assert(typeof globalThis.aggiornaBackupInfo === 'function', 'Funzione aggiornaBa
 assert(typeof globalThis.App?.storage?.getArchive === 'function', 'Funzione archivio disponibile in App.storage');
 assert(typeof globalThis.App?.storage?.getTrash === 'function', 'Funzione cestino disponibile in App.storage');
 
-// 7. Test Scorporo Listino su Documenti Singoli con ID (v4.0 Decoupled)
-console.log('\n7. Test Scorporo Listino su Documenti Singoli con ID (v4.0 Decoupled):');
+// 7. Test Scorporo Listino su Documenti Singoli con ID (v4.0 Cloud DB)
+console.log('\n7. Test Scorporo Listino su Documenti Singoli con ID (v4.0 Cloud DB):');
 globalThis.localStorage = {
   _store: {},
   getItem: function(k){ return this._store[k] || null; },
@@ -230,13 +230,12 @@ globalThis.CHIAVE_LISTINO = "fc_listino_v1";
 require(path.join(SRC_JS_DIR, 'config.js'));
 require(path.join(SRC_JS_DIR, 'price-list.js'));
 
-const stdVoci = globalThis.listinoStandard();
-assert(Array.isArray(stdVoci) && stdVoci.length >= 30, `Listino standard contiene ${stdVoci.length} voci`);
-const tuttiConId = stdVoci.every(v => typeof v.id === 'string' && v.id.startsWith('voc_'));
-assert(tuttiConId, 'Tutte le voci del listino standard possiedono un ID univoco (voc_...)');
+assert(Array.isArray(globalThis.LISTINO_STD) && globalThis.LISTINO_STD.length === 0, 'Nessun backup listino hardcoded nel codice (solo Cloud DB)');
+assert(Array.isArray(globalThis.listino()) && globalThis.listino().length === 0, 'Listino locale vuoto in attesa dei dati dal Cloud DB');
 
-const idSet = new Set(stdVoci.map(v => v.id));
-assert(idSet.size === stdVoci.length, `Tutti gli ${stdVoci.length} ID voce sono univoci e non duplicati`);
+const id1 = globalThis.generaIdVoce('Ripresa Drone FPV', 1);
+const id2 = globalThis.generaIdVoce('Montaggio Spot', 2);
+assert(typeof id1 === 'string' && id1.startsWith('voc_') && id1 !== id2, 'Generazione ID univoci per voci DB (voc_...)');
 
 const normalizzata = globalThis.normalizzaVoceListino({ nome: 'Voce Personalizzata Test', prezzo: 150 });
 assert(normalizzata && typeof normalizzata.id === 'string' && normalizzata.id.startsWith('voc_'), 'Generazione automatica ID per nuove voci senza ID');
@@ -246,12 +245,117 @@ assert(normalizzata.attivo === true, 'Flag attivo: true impostato di default');
 assert(typeof globalThis.App?.priceList?.deleteItem === 'function', 'Funzione deleteItem presente in App.priceList');
 assert(typeof globalThis.App?.priceList?.saveItem === 'function', 'Funzione saveItem presente in App.priceList');
 
-console.log('\n----------------------------------------------------');
-console.log(`RISULTATO TEST: ${passedTests}/${totalTests} superati.`);
-if (failedTests > 0) {
-  console.error(`ATTENZIONE: ${failedTests} test falliti!\n`);
-  process.exit(1);
-} else {
-  console.log('TUTTI I TEST SONO STATI SUPERATI CON SUCCESSO! ✓\n');
-  process.exit(0);
+// 8. Test Serializzazione Firestore, Import JSON & Sincronizzazione Batch (v4.0 Cloud)
+console.log('\n8. Test Serializzazione Firestore & Sincronizzazione Import JSON:');
+{
+  const writtenDocs = [];
+  const deletedIds = [];
+  let commitCount = 0;
+
+  globalThis.document = {
+    getElementById: () => null,
+    addEventListener: () => {}
+  };
+  globalThis.navigator = { onLine: true };
+  globalThis.window.addEventListener = () => {};
+
+  const makeDocRef = (col, id) => ({ col, id });
+  const fakeDb = {
+    enablePersistence: () => Promise.resolve(),
+    collection: (col) => ({
+      doc: (id) => makeDocRef(col, id),
+      limit: () => ({ get: () => Promise.resolve({ empty: true }) }),
+      onSnapshot: () => {}
+    }),
+    batch: () => {
+      const ops = [];
+      return {
+        set: (ref, data) => ops.push({ type: 'set', ref, data }),
+        delete: (ref) => ops.push({ type: 'delete', ref }),
+        commit: async () => {
+          commitCount++;
+          ops.forEach(op => {
+            if (op.type === 'set') writtenDocs.push(op);
+            if (op.type === 'delete') deletedIds.push(op.ref.id);
+          });
+        }
+      };
+    }
+  };
+
+  globalThis.firebase = {
+    apps: [{ name: 'test' }],
+    initializeApp: () => {},
+    firestore: () => fakeDb
+  };
+
+  require(path.join(SRC_JS_DIR, 'firebase-sync.js'));
+
+  assert(typeof globalThis.FirebaseSync?.preparaPreventivoPerFirestore === 'function', 'preparaPreventivoPerFirestore esposta su FirebaseSync');
+  assert(typeof globalThis.FirebaseSync?.sincronizzaTutto === 'function', 'sincronizzaTutto esposta su FirebaseSync');
+
+  const ALLOWED_FIRESTORE_FIELDS = new Set([
+    'id', 'numero', 'data', 'validita', 'stato', 'cliente', 'progetto', 'voci',
+    'sconto', 'sconto_txt', 'regime', 'ritenuta', 'rivalsa', 'iva', 'bollo',
+    'incluso', 'escluso', 'opzioni', 'condizioni', 'io', 'totale', 'modificato',
+    'driveFileId', 'driveUrl', 'driveSavedAt', 'cestinato', 'eliminatoIl', 'annullamento'
+  ]);
+
+  const jsonImportatoEsterno = {
+    id: 'id molto lungo con spazi e caratteri speciali ### ' + 'x'.repeat(80),
+    numero: '',
+    data: '',
+    stato: 'sconosciuto',
+    cliente: { nome: 'Acme Video Srl', email: 'info@acme.it' },
+    progetto: { titolo: 'Spot Commerciale' },
+    voci: [{ desc: 'Riprese 4K', qta: 2, prezzo: 600 }],
+    condizioni: [['Pagamento', '50% acconto, 50% consegna'], ['Validita', '30 giorni']],
+    totali: { netto: 1200 },
+    versione: 2,
+    extraCampoNonConsentito: 'da rimuovere'
+  };
+
+  const sanificatoImport = globalThis.sanificaPreventivo(jsonImportatoEsterno);
+  assert(/^[a-zA-Z0-9_-]{1,64}$/.test(sanificatoImport.id), 'sanificaPreventivo normalizza ID valido <= 64 char');
+  assert(sanificatoImport.totale === 1200, 'sanificaPreventivo recupera totale da oggetto totali legacy');
+
+  const pFire = globalThis.FirebaseSync.preparaPreventivoPerFirestore(jsonImportatoEsterno);
+  const chiaviFire = Object.keys(pFire);
+  assert(chiaviFire.every(k => ALLOWED_FIRESTORE_FIELDS.has(k)), 'preparaPreventivoPerFirestore rimuove tutti i campi non consentiti da firestore.rules');
+  assert(!('versione' in pFire) && !('totali' in pFire) && !('extraCampoNonConsentito' in pFire), 'Campi extra JSON (versione, totali, extraCampoNonConsentito) esclusi');
+  assert(pFire.numero.length >= 1 && pFire.numero.length <= 64, 'Numero preventivo garantito non vuoto per firestore.rules');
+  assert(pFire.data.length >= 8 && pFire.data.length <= 32, 'Data preventivo garantita valida per firestore.rules');
+  assert(Array.isArray(pFire.condizioni) && pFire.condizioni.length === 2, 'Condizioni preservate nel payload Firestore');
+  assert(pFire.condizioni.every(c => !Array.isArray(c) && typeof c === 'object' && c.titolo && c.testo), 'Condizioni convertite da array annidati a mappe {titolo, testo} compatibili Firestore');
+
+  const roundTrip = globalThis.sanificaPreventivo(pFire);
+  assert(Array.isArray(roundTrip.condizioni[0]) && roundTrip.condizioni[0][0] === 'Pagamento' && roundTrip.condizioni[0][1] === '50% acconto, 50% consegna', 'Round-trip condizioni Firestore -> sanificaPreventivo ricostruisce tuple [titolo, testo]');
+
+  globalThis.FirebaseSync.sincronizzaTutto(false, {
+    preventivi: [jsonImportatoEsterno],
+    eliminaIds: ['vecchio_id_sostituito'],
+    listino: [{ nome: 'Regia', prezzo: 500, extraNonValido: true }]
+  }).then(ok => {
+    assert(ok === true, 'sincronizzaTutto completa la scrittura batch su Firestore');
+    assert(commitCount >= 2, `Batch Firestore committati correttamente (${commitCount})`);
+    const prevDoc = writtenDocs.find(w => w.ref.col === 'preventivi');
+    const listDoc = writtenDocs.find(w => w.ref.col === 'listino');
+    assert(!!prevDoc && prevDoc.data.condizioni[0].titolo === 'Pagamento', 'Preventivo importato scritto nella collezione /preventivi senza array annidati');
+    assert(!!listDoc && !('extraNonValido' in listDoc.data), 'Voce listino sanificata nella collezione /listino');
+    assert(deletedIds.includes('vecchio_id_sostituito'), 'Vecchio documento rimpiazzato per numero eliminato dal cloud');
+
+    console.log('\n----------------------------------------------------');
+    console.log(`RISULTATO TEST: ${passedTests}/${totalTests} superati.`);
+    if (failedTests > 0) {
+      console.error(`ATTENZIONE: ${failedTests} test falliti!\n`);
+      process.exit(1);
+    } else {
+      console.log('TUTTI I TEST SONO STATI SUPERATI CON SUCCESSO! ✓\n');
+      process.exit(0);
+    }
+  }).catch(err => {
+    console.error('Errore test async Firestore:', err);
+    process.exit(1);
+  });
 }
+

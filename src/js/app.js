@@ -235,7 +235,10 @@
       if(mobCl) mobCl.classList.toggle("attivo", v==="clienti");
 
       const mobBar = document.getElementById("mobile-editor-bar");
-      if(mobBar) mobBar.style.display = (v === "editor") ? "flex" : "none";
+      if(mobBar) {
+        mobBar.classList.toggle("visibile", v === "editor");
+        mobBar.style.display = "";
+      }
 
       if(v==="archivio") disegnaArchivio();
       if(v==="listino") disegnaListino();

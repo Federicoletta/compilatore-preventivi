@@ -941,3 +941,53 @@ html[data-tema="dark"] .mob-sheet-header {
 html[data-tema="dark"] .mob-sheet-header h3 {
   color: var(--ciano);
 }
+html[data-tema="dark"] .cerca input {
+  background-color: #141A24 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: var(--ink) !important;
+}
+html[data-tema="dark"] .vuoto-box {
+  background: #0E131B !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+@media (max-width: 768px) {
+  html[data-tema="dark"] table.ed tr {
+    background: #141A24 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  }
+  html[data-tema="dark"] table.ed td input.nome,
+  html[data-tema="dark"] table.ed td textarea.desc,
+  html[data-tema="dark"] table.ed td input.l-cat,
+  html[data-tema="dark"] table.ed td input.l-unita,
+  html[data-tema="dark"] table.ed td input.l-prezzo,
+  html[data-tema="dark"] #corpo-opzioni td.n input.num {
+    background-color: #0E131B !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #F0F4F8 !important;
+    border-radius: 8px !important;
+  }
+  html[data-tema="dark"] table.ed td textarea.desc {
+    color: #CBD5E1 !important;
+  }
+  html[data-tema="dark"] table.ed td.tot-cella {
+    color: #38BDF8 !important;
+  }
+  html[data-tema="dark"] table.arch,
+  html[data-tema="dark"] table.arch tbody {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  html[data-tema="dark"] table.arch tbody tr {
+    background: #141A24 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  html[data-tema="dark"] table.arch tbody tr:hover td {
+    background: transparent !important;
+  }
+  html[data-tema="dark"] table.arch tbody tr.selezionata {
+    background: #132C35 !important;
+    border-color: rgba(56, 189, 248, 0.45) !important;
+  }
+}

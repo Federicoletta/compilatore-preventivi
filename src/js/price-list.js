@@ -1,24 +1,9 @@
-/* ================== listino scorporato v4.0 ================== */
-const CHIAVE_LISTINO_VISTE = "fc_listino_viste_v1";
+/* ================== listino cloud DB v4.0 ================== */
 let _listinoCache = null;
 
 function generaIdVoce(nome, idx){
   const slug = (nome || "voce").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 32);
   return "voc_" + (slug || "item") + (idx != null ? "_" + idx : "_" + Date.now().toString(36));
-}
-
-function listinoStandard(){
-  const std = typeof LISTINO_STD !== 'undefined' ? LISTINO_STD : (globalThis.LISTINO_STD || []);
-  return std.map(([cat,nome,desc,unita,prezzo], idx)=>({
-    id: generaIdVoce(nome, idx + 1),
-    cat: cat || "",
-    nome: nome || "",
-    desc: desc || "",
-    unita: unita || "forfait",
-    prezzo: Number(prezzo) || 0,
-    ordine: idx + 1,
-    attivo: true
-  }));
 }
 
 function normalizzaVoceListino(v, idx){
@@ -39,39 +24,12 @@ function normalizzaVoceListino(v, idx){
 
 function listino(){
   if(_listinoCache) return _listinoCache;
-  let l = null;
+  let l = [];
   try{
     const x = JSON.parse(localStorage.getItem(CHIAVE_LISTINO));
-    if(Array.isArray(x) && x.length > 0){
+    if(Array.isArray(x)){
       l = x.map((v, i) => normalizzaVoceListino(v, i)).filter(Boolean);
     }
-  }catch(e){}
-
-  if(!l || !l.length) {
-    _listinoCache = listinoStandard();
-    try{ localStorage.setItem(CHIAVE_LISTINO, JSON.stringify(_listinoCache)); }catch(e){}
-    return _listinoCache;
-  }
-
-  // Preserva voci standard se non presenti
-  let viste = [];
-  try{ viste = JSON.parse(localStorage.getItem(CHIAVE_LISTINO_VISTE)) || []; }catch(e){}
-  const presenti = new Set(l.map(v => (v.nome || "").toLowerCase()));
-  const gia = new Set(viste.map(n => String(n).toLowerCase()));
-  let cambiato = false;
-
-  listinoStandard().forEach((v, idx) => {
-    const k = (v.nome || "").toLowerCase();
-    if(!presenti.has(k) && !gia.has(k)){
-      l.push(v);
-      cambiato = true;
-    }
-  });
-
-  const tutteStd = listinoStandard().map(v => v.nome);
-  try{
-    localStorage.setItem(CHIAVE_LISTINO_VISTE, JSON.stringify(tutteStd));
-    if(cambiato) localStorage.setItem(CHIAVE_LISTINO, JSON.stringify(l));
   }catch(e){}
 
   _listinoCache = l;
@@ -211,17 +169,6 @@ function aggiungiRigaListino(){
   if(ultima){ ultima.scrollIntoView({block:"center"}); ultima.querySelector(".l-cat")?.focus(); }
 }
 
-function ripristinaListino(){
-  if(!confirm("Rimetti il listino standard? Le voci e i prezzi che hai modificato vanno persi.")) return;
-  if(!creaSnapshot("prima-di-ripristino-listino", "Ripristino del listino standard")) return;
-  const std = listinoStandard();
-  salvaListino(std, true);
-  const f = document.getElementById("filtro-listino"); if(f) f.value = "";
-  disegnaListino();
-  aggiornaTendinaListino();
-  avviso("Listino standard ripristinato e sincronizzato su Cloud.");
-}
-
 function aggiornaTendinaListino(){
   const sel = document.getElementById("sel-listino"); if(!sel) return;
   const l = listino();
@@ -287,17 +234,15 @@ if(typeof window !== 'undefined' && window.App){
     deleteItem: eliminaVoceListino,
     render: disegnaListino,
     addItem: aggiungiRigaListino,
-    restoreDefaults: ripristinaListino,
     updateDropdown: aggiornaTendinaListino,
     insertIntoEditor: aggiungiDaListino,
     print: stampaListino,
-    standard: listinoStandard,
     updateCache: aggiornaCacheListino
   };
 }
 
 if(typeof globalThis !== 'undefined'){
-  globalThis.listinoStandard = listinoStandard;
+  globalThis.generaIdVoce = generaIdVoce;
   globalThis.normalizzaVoceListino = normalizzaVoceListino;
   globalThis.listino = listino;
   globalThis.aggiornaCacheListino = aggiornaCacheListino;
@@ -306,7 +251,6 @@ if(typeof globalThis !== 'undefined'){
   globalThis.eliminaVoceListino = eliminaVoceListino;
   globalThis.disegnaListino = disegnaListino;
   globalThis.aggiungiRigaListino = aggiungiRigaListino;
-  globalThis.ripristinaListino = ripristinaListino;
   globalThis.aggiornaTendinaListino = aggiornaTendinaListino;
   globalThis.aggiungiDaListino = aggiungiDaListino;
   globalThis.stampaListino = stampaListino;

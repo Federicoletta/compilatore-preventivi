@@ -59,7 +59,6 @@ def build():
         'editor.js',
         'price-list.js',
         'print-engine.js',
-        'google-drive.js',
         'archive.js',
         'theme.js',
         'app.js'
@@ -76,17 +75,23 @@ def build():
     script_tag = "<script>\n" + "\n\n".join(js_combined) + "\n</script>"
     
     # Sostituisci i tag <script src="..."> usando function repl
-    js_pattern = re.compile(r'<!-- Moduli JavaScript -->.*?<script src="js/app\.js"></script>', re.DOTALL)
+    js_pattern = re.compile(r'<!-- Moduli JavaScript -->.*?<script[^>]+app\.js"></script>', re.DOTALL)
     html = js_pattern.sub(lambda m: script_tag, html)
     
-    # 4. Scrivi il file di destinazione per Firebase Hosting (public/index.html)
+    # 4. Scrivi il file di destinazione per Firebase Hosting (public/index.html) e desktop (Compilatore-preventivi.html)
     os.makedirs(PUBLIC_DIR, exist_ok=True)
     with open(PUBLIC_FILE, 'w', encoding='utf-8') as out_pub:
         out_pub.write(html)
         
+    desktop_file = os.path.join(ROOT_DIR, 'Compilatore-preventivi.html')
+    with open(desktop_file, 'w', encoding='utf-8') as out_desk:
+        out_desk.write(html)
+        
     size_kb = os.path.getsize(PUBLIC_FILE) / 1024
     print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] Compilazione completata con successo!")
     print(f"  -> Cartella hosting aggiornata: {PUBLIC_FILE} ({size_kb:.1f} KB)")
+    print(f"  -> File desktop aggiornato: {desktop_file} ({size_kb:.1f} KB)")
+
 
 if __name__ == '__main__':
     if '--test' in sys.argv:
