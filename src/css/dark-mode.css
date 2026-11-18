@@ -1,5 +1,5 @@
 /* ---------- Tema Dark ---------- */
-.btn-tema{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;font-size:13px;line-height:1}
+.btn-tema{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 11px;font-size:12.5px;line-height:1;white-space:nowrap;flex-shrink:0;box-sizing:border-box}
 .btn-tema .icona-tema{font-size:14px;line-height:1;display:inline-block;transition:transform .2s ease}
 .btn-tema:hover .icona-tema{transform:rotate(15deg)}
 
@@ -22,11 +22,11 @@ html[data-tema="dark"] body{
   background: var(--bg-app); color: var(--ink);
 }
 html[data-tema="dark"] .barra{
-  background: rgba(11, 15, 22, 0.85);
+  background: rgba(11, 15, 22, 0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
 }
 html[data-tema="dark"] .tabs{
   background: rgba(20, 26, 36, 0.7);
