@@ -262,10 +262,11 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
         <div class="sezione">Voci di preventivo</div>
         ${tabellaVoci}
         ${renderTotalsBlock(t, { scontoTxt: p.sconto_txt })}
-        ${opzHtml}
         <div class="spazio-flessibile"></div>
-        <div class="rimando-continua">Segue allegato contrattuale, condizioni e firme a Pagina 2 →</div>
-        ${renderFooterHtml(p)}
+        <div class="blocco-chiusura">
+          <div class="rimando-continua">Segue allegato contrattuale, condizioni e firme a Pagina 2 →</div>
+          ${renderFooterHtml(p)}
+        </div>
       </div>
 
       <div class="foglio-stampa allegato-condizioni inizia-nuova-pagina">
@@ -277,10 +278,12 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
           </div>
         </header>
         ${comprendeHtml}
+        ${opzHtml}
         ${condHtml}
-        ${bloccoAccettazione}
-        <div class="spazio-flessibile"></div>
-        ${renderFooterHtml(p)}
+        <div class="blocco-chiusura">
+          ${bloccoAccettazione}
+          ${renderFooterHtml(p)}
+        </div>
       </div>
     </div>`;
   }
@@ -293,7 +296,6 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
       <div class="sezione">Voci di preventivo</div>
       ${tabellaVoci}
       ${renderTotalsBlock(t, { scontoTxt: p.sconto_txt })}
-      ${opzHtml}
 
       <div class="allegato-condizioni inizia-nuova-pagina">
         <div class="allegato-header-inline">
@@ -301,11 +303,13 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
           <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>
         </div>
         ${comprendeHtml}
+        ${opzHtml}
         ${condHtml}
-        ${bloccoAccettazione}
+        <div class="blocco-chiusura">
+          ${bloccoAccettazione}
+          ${renderFooterHtml(p)}
+        </div>
       </div>
-
-      ${renderFooterHtml(p)}
     </div>
   </div>`;
 }
@@ -412,14 +416,16 @@ export function renderSecondDocumentHtml(quote, { showSignature = true, totals =
           Causale: ${esc(titolo)} rif. ${esc(p.numero)}${progetto.titolo ? ` · ${esc(progetto.titolo)}` : ""}
         </div>
       </section>
-      <div class="firma-singola sign-area">
-        <div class="b">
-          <div class="linea">${renderSignatureImg(showSignature)}</div>
-          <div class="did">${esc(IO.nome)}</div>
-        </div>
-      </div>
       <div class="spazio-flessibile"></div>
-      ${renderFooterHtml(p)}
+      <div class="blocco-chiusura">
+        <div class="firma-singola sign-area">
+          <div class="b">
+            <div class="linea">${renderSignatureImg(showSignature)}</div>
+            <div class="did">${esc(IO.nome)}</div>
+          </div>
+        </div>
+        ${renderFooterHtml(p)}
+      </div>
     </div>
   </div>`;
 }
