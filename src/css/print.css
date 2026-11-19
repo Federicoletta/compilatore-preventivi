@@ -1,6 +1,11 @@
 /* ==========================================================================
    FOGLIO EDITORIALE A4 UNIFICATO — ANTEPRIMA LIVE & STAMPA PDF
    Condiviso al 100% tra .doc-a4-root (anteprima) e #stampa (stampa @media print).
+   Meccanismi di impaginazione intelligente:
+     1) Table Spacer (14mm tfoot) + Fixed Running Footer (11mm) su ogni pagina PDF
+     2) Misurazione off-screen (#stampa.is-measuring-print a 182mm) identica al PDF
+     3) Auto-Compact (.print-compact) su sbordi lievi (100%–120% di 1 pagina)
+     4) Salto Pagina Intelligente (.force-page-break vs .flow-annex, soglia 42%)
    Brand Kit Ufficiale Federico Coletta:
      Primario istituzionale: #0C4E54 (Titoli, intestazioni primarie, Totale)
      Petrolio secondario:    #01696F (Occhielli, etichette sezione, sottotitoli, indici)
@@ -17,10 +22,26 @@
   display: none;
 }
 
+/* Stadio off-screen identico al foglio A4 stampabile (210mm - 2*14mm = 182mm) per misurazione reale */
+#stampa.is-measuring-print {
+  display: block !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: -99999px !important;
+  width: 182mm !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+  background: #FFFFFF !important;
+  color: #1A1A1A !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 @media print {
   @page {
     size: A4;
-    margin: 11mm 14mm;
+    margin: 12mm 14mm;
     background: #FFFFFF;
   }
 
@@ -63,198 +84,57 @@
     padding: 0 !important;
   }
 
-  .doc-a4-root {
-    font-size: 8.5px;
-    line-height: 1.38;
+  /* Running Footer ancorato a piè di pagina su ogni foglio A4 stampato */
+  .doc-a4-root table.print-shell > tfoot {
+    display: table-footer-group;
+  }
+
+  .doc-a4-root .print-footer-spacer {
+    display: block;
+    height: 14mm;
+  }
+
+  .doc-a4-root .doc-running-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 11mm;
+    margin: 0 !important;
+    padding: 2mm 0 0 0 !important;
+    border-top: 1px solid #D9D6CF;
     background: #FFFFFF !important;
-    box-shadow: none !important;
-    border: none !important;
-  }
-
-  .doc-a4-root .foglio-stampa.foglio-preventivo,
-  .doc-a4-root .foglio-stampa.allegato-condizioni.inizia-nuova-pagina,
-  .doc-a4-root .foglio-stampa.foglio-secondo {
-    display: block !important;
-    min-height: 0 !important;
-    height: auto !important;
-  }
-
-  .doc-a4-root .spazio-flessibile {
-    display: none !important;
-  }
-
-  .doc-a4-root .intestazione {
-    padding-bottom: 7px;
-    margin-bottom: 9px;
-  }
-
-  .doc-a4-root .doc-logo-img {
-    height: 34px;
-  }
-
-  .doc-a4-root .doc-logo-img.doc-logo-compact {
-    height: 26px;
-  }
-
-  .doc-a4-root .intestazione.intestazione-compatta {
-    padding-bottom: 6px;
-    margin-bottom: 8px;
-  }
-
-  .doc-a4-root .blocchi {
-    gap: 24px;
-    padding-bottom: 9px;
-  }
-
-  .doc-a4-root .etichetta {
-    margin-bottom: 5px;
-  }
-
-  .doc-a4-root .blocco .nome {
-    margin-bottom: 3px;
-  }
-
-  .doc-a4-root .blocco .righe {
-    font-size: 8pt;
-    line-height: 1.36;
-  }
-
-  .doc-a4-root .spec-grid {
-    gap: 5px 16px;
-  }
-
-  .doc-a4-root .intro {
-    margin: 8px 0 10px;
-    padding: 7px 12px;
-    font-size: 8pt;
-    line-height: 1.36;
-  }
-
-  .doc-a4-root .intro p {
-    margin: 0 0 3px;
-  }
-
-  .doc-a4-root .sezione {
-    margin: 10px 0 6px;
-    padding-bottom: 3px;
-  }
-
-  .doc-a4-root table.voci thead th {
-    padding: 0 0 5px 0;
-  }
-
-  .doc-a4-root table.voci tbody td {
-    padding: 5px 0;
-  }
-
-  .doc-a4-root table.voci tbody td.num {
-    padding: 5px 0 5px 10px;
-  }
-
-  .doc-a4-root .v-nome {
-    font-size: 9.8px;
-    line-height: 1.25;
-    margin-bottom: 2px;
-  }
-
-  .doc-a4-root .v-desc {
-    font-size: 8pt;
-    line-height: 1.32;
-  }
-
-  .doc-a4-root .totali {
-    margin-top: 9px;
-    gap: 20px;
-  }
-
-  .doc-a4-root .totali .riga {
-    padding: 3.5px 2px;
-    font-size: 8.5px;
-  }
-
-  .doc-a4-root .totali .riga.totale {
-    padding: 7px 11px;
-    margin-top: 5px;
-  }
-
-  .doc-a4-root .rimando-continua {
-    margin-top: 8px;
-    margin-bottom: 2px;
-  }
-
-  .doc-a4-root .due-colonne {
-    gap: 20px;
-    margin-top: 4px;
-    margin-bottom: 8px;
-  }
-
-  .doc-a4-root .col-card {
-    padding: 7px 11px;
-  }
-
-  .doc-a4-root .due-colonne li {
-    margin-bottom: 2.5px;
-    font-size: 8pt;
-    line-height: 1.32;
-  }
-
-  .doc-a4-root .condizioni-grid,
-  .doc-a4-root .clauses-grid {
-    gap: 7px 22px;
-    margin-top: 5px;
-    margin-bottom: 8px;
-  }
-
-  .doc-a4-root .cond-card,
-  .doc-a4-root .clause {
-    padding: 0 0 5px 0;
-  }
-
-  .doc-a4-root .cond-tit {
-    margin-bottom: 2px;
-  }
-
-  .doc-a4-root .cond-txt {
-    font-size: 8pt;
-    line-height: 1.32;
-  }
-
-  .doc-a4-root .blocco-chiusura {
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-
-  .doc-a4-root .accettazione,
-  .doc-a4-root .sign-area {
-    margin-top: 10px;
-    padding: 8px 0 2px;
-  }
-
-  .doc-a4-root .accettazione p {
-    margin: 0 0 10px;
-    font-size: 8pt;
-    line-height: 1.34;
-  }
-
-  .doc-a4-root .firme .linea,
-  .doc-a4-root .firma-singola .linea {
-    height: 30px;
-  }
-
-  .doc-a4-root .img-firma-auto {
-    height: 38px;
-  }
-
-  .doc-a4-root .pieded,
-  .doc-a4-root .foglio-continuo .pieded {
-    margin-top: 10px !important;
-    padding-top: 6px !important;
-    break-before: avoid !important;
-    page-break-before: avoid !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    z-index: 10;
   }
 }
 
-/* ---------- Contenitore base documento A4 (identico in Preview & Print) ---------- */
+/* ---------- Anteprima A4 su schermo (footer statico, nessuno spacer artificiale) ---------- */
+@media screen {
+  .doc-a4-root .print-footer-spacer {
+    display: none;
+    height: 0;
+  }
+
+  .doc-a4-root .doc-running-footer {
+    position: static;
+    height: auto;
+    margin-top: 22px;
+    padding-top: 9px;
+    border-top: 1px solid #D9D6CF;
+    background: #FFFFFF;
+  }
+
+  .a4-sheet-frame .doc-section-annex.force-page-break {
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 2px dashed #D9D6CF;
+  }
+}
+
+/* ---------- Contenitore base documento A4 (identico in Preview, Misurazione & Print) ---------- */
 .doc-a4-root,
 .doc-a4-root * {
   box-sizing: border-box;
@@ -265,52 +145,67 @@
 .doc-a4-root {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   color: #1A1A1A;
-  font-size: 9px;
-  line-height: 1.48;
+  font-size: 8.75px;
+  line-height: 1.42;
   text-align: left;
-  background: #ffffff;
+  background: #FFFFFF;
 }
 
-/* ---------- Fogli & impaginazione dinamica ---------- */
-.doc-a4-root .foglio-stampa {
+/* ---------- Print Shell (Table Spacer per riservare il footer su ogni foglio) ---------- */
+.doc-a4-root table.print-shell {
   width: 100%;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-  position: relative;
+  border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
+  border: none;
+  margin: 0;
+}
+
+.doc-a4-root table.print-shell,
+.doc-a4-root table.print-shell > tbody,
+.doc-a4-root table.print-shell > tbody > tr,
+.doc-a4-root table.print-shell > tbody > tr > td {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+
+.doc-a4-root table.print-shell > tbody > tr > td.print-shell-body,
+.doc-a4-root table.print-shell > tfoot > tr > td.print-shell-foot {
+  padding: 0;
+  border: none;
+  background: transparent;
+  vertical-align: top;
+}
+
+/* ---------- Sezioni Logiche & Salto Pagina Intelligente ---------- */
+.doc-a4-root .doc-section-quote,
+.doc-a4-root .doc-section-annex,
+.doc-a4-root .doc-section-second,
+.doc-a4-root .doc-section-pricelist {
   display: block;
+  width: 100%;
 }
 
-.doc-a4-root .foglio-stampa.foglio-preventivo,
-.doc-a4-root .foglio-stampa.allegato-condizioni.inizia-nuova-pagina,
-.doc-a4-root .foglio-stampa.foglio-secondo {
-  display: flex;
-  flex-direction: column;
-  min-height: 254mm;
-}
-
-.doc-a4-root .foglio-stampa.inizia-nuova-pagina,
-.doc-a4-root .allegato-condizioni {
+.doc-a4-root .doc-section-annex.force-page-break {
   break-before: page;
   page-break-before: always;
 }
 
-/* In anteprima su schermo, separa visivamente Pagina 1 e Pagina 2 */
-@media screen {
-  .a4-sheet-frame .foglio-stampa.inizia-nuova-pagina,
-  .a4-sheet-frame .allegato-condizioni.flusso-continuo {
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 2px dashed #D9D6CF;
-  }
+.doc-a4-root .doc-section-annex.flow-annex {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #D9D6CF;
+  break-before: auto;
+  page-break-before: auto;
 }
 
-.doc-a4-root .allegato-condizioni.flusso-continuo {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-  break-before: page;
-  page-break-before: always;
+/* Toggle automatico tra header da nuova pagina (con logo) e header inline (flusso continuo) */
+.doc-a4-root .doc-section-annex.force-page-break .annex-header-flow {
+  display: none;
+}
+
+.doc-a4-root .doc-section-annex.flow-annex .annex-header-page {
+  display: none;
 }
 
 .doc-a4-root .allegato-header-inline {
@@ -318,8 +213,8 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 14px;
-  padding-bottom: 6px;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
   border-bottom: 1px solid #D9D6CF;
   break-after: avoid;
   page-break-after: avoid;
@@ -328,7 +223,7 @@
 .doc-a4-root .allegato-header-inline .tit-inline {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12.5px;
   letter-spacing: -0.01em;
   color: #0C4E54;
 }
@@ -339,22 +234,15 @@
   white-space: nowrap;
 }
 
-.doc-a4-root .spazio-flessibile {
-  flex: 1 1 auto;
-  min-height: 8px;
-}
-
 /* ---------- Intestazione & Logo ---------- */
 .doc-a4-root .intestazione {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  padding-bottom: 14px;
-  margin-bottom: 18px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
   border-bottom: 1px solid #D9D6CF;
-  break-inside: avoid;
-  page-break-inside: avoid;
   break-after: avoid;
   page-break-after: avoid;
 }
@@ -368,16 +256,16 @@
 
 /* Aspect ratio nativo SVG logo: 1322 / 279 = 4.738 */
 .doc-a4-root .doc-logo-img {
-  height: 40px;
+  height: 36px;
   width: auto;
-  max-width: 192px;
+  max-width: 180px;
   display: block;
   object-fit: contain;
 }
 
 .doc-a4-root .doc-logo-img.doc-logo-compact {
-  height: 30px;
-  max-width: 144px;
+  height: 26px;
+  max-width: 132px;
 }
 
 .doc-a4-root .intestazione .doc {
@@ -389,7 +277,7 @@
 .doc-a4-root .intestazione .doc .tipo {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 23px;
+  font-size: 22px;
   color: #0C4E54;
   letter-spacing: -0.02em;
   line-height: 1.05;
@@ -397,10 +285,10 @@
 }
 
 .doc-a4-root .intestazione .doc .meta {
-  font-size: 8.5px;
+  font-size: 8.2px;
   color: #6B6B6B;
-  margin-top: 6px;
-  line-height: 1.48;
+  margin-top: 5px;
+  line-height: 1.42;
   text-align: right;
   font-variant-numeric: tabular-nums lining-nums;
 }
@@ -412,12 +300,12 @@
 
 .doc-a4-root .intestazione.intestazione-compatta {
   align-items: center;
-  padding-bottom: 10px;
-  margin-bottom: 16px;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .doc-a4-root .intestazione.intestazione-compatta .doc .tipo {
-  font-size: 13px;
+  font-size: 12.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.2;
@@ -426,19 +314,17 @@
 
 .doc-a4-root .intestazione.intestazione-compatta .doc .meta {
   font-size: 8px;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 /* ---------- Griglia Cliente vs Specifiche Progetto ---------- */
 .doc-a4-root .blocchi {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 32px;
+  gap: 28px;
   align-items: start;
-  padding-bottom: 18px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #D9D6CF;
-  break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 .doc-a4-root .blocco {
@@ -456,7 +342,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #01696F;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-align: left;
   break-after: avoid;
   page-break-after: avoid;
@@ -465,17 +351,17 @@
 .doc-a4-root .blocco .nome {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12.5px;
   color: #1A1A1A;
   line-height: 1.25;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   text-align: left;
 }
 
 .doc-a4-root .blocco .righe {
   color: #6B6B6B;
-  font-size: 8.75px;
-  line-height: 1.5;
+  font-size: 8.4px;
+  line-height: 1.44;
   text-align: left;
 }
 
@@ -488,7 +374,7 @@
   margin: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 20px;
+  gap: 7px 18px;
 }
 
 .doc-a4-root .spec-item {
@@ -503,42 +389,40 @@
 .doc-a4-root .spec-item dt {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 600;
-  font-size: 8px;
+  font-size: 7.8px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #01696F;
-  line-height: 1.25;
-  margin: 0 0 2px 0;
+  line-height: 1.22;
+  margin: 0 0 1.5px 0;
   text-align: left;
 }
 
 .doc-a4-root .spec-item dd {
   margin: 0;
-  font-size: 9.5px;
+  font-size: 9.2px;
   font-weight: 600;
   color: #1A1A1A;
-  line-height: 1.38;
+  line-height: 1.35;
   text-align: left;
 }
 
 /* ---------- Box Introduttivo (Sabbia chiara #F4F3EF + filetto ciano #1BA0AB 2.5pt) ---------- */
 .doc-a4-root .intro {
-  margin: 18px 0 22px;
-  padding: 12px 16px;
+  margin: 12px 0 14px;
+  padding: 9px 14px;
   background: #F4F3EF;
   border: none;
   border-left: 2.5pt solid #1BA0AB;
   border-radius: 0;
-  font-size: 9px;
-  line-height: 1.5;
+  font-size: 8.6px;
+  line-height: 1.44;
   color: #6B6B6B;
   text-align: left;
-  break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 .doc-a4-root .intro p {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   text-align: left;
 }
 
@@ -551,24 +435,24 @@
   font-weight: 600;
 }
 
-/* ---------- Intestazioni di sezione (Occhielli #01696F) ---------- */
+/* ---------- Intestazioni di sezione (Occhielli #01696F — mai orfani) ---------- */
 .doc-a4-root .sezione {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 8.5px;
+  font-size: 8.3px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #01696F;
-  margin: 22px 0 10px;
-  padding-bottom: 6px;
+  margin: 14px 0 7px;
+  padding-bottom: 4px;
   border-bottom: 1px solid #D9D6CF;
   text-align: left;
   break-after: avoid;
   page-break-after: avoid;
 }
 
-.doc-a4-root .allegato-condizioni .sezione:first-of-type {
-  margin-top: 6px;
+.doc-a4-root .doc-section-annex .sezione:first-of-type {
+  margin-top: 4px;
 }
 
 /* ---------- Tabella Voci di Preventivo ---------- */
@@ -576,7 +460,7 @@
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .doc-a4-root table.voci thead {
@@ -590,12 +474,12 @@
 .doc-a4-root table.voci thead th {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 8px;
+  font-size: 7.8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #01696F;
   text-align: left;
-  padding: 0 6px 8px 6px;
+  padding: 0 5px 6px 5px;
   border-bottom: 1.5px solid #0C4E54;
 }
 
@@ -604,6 +488,7 @@
   padding-left: 10px;
 }
 
+/* Elemento atomico: singola riga voce non spezzata tra pagine */
 .doc-a4-root table.voci tbody tr,
 .doc-a4-root table.voci tr.voice-item {
   break-inside: avoid;
@@ -611,7 +496,7 @@
 }
 
 .doc-a4-root table.voci tbody td {
-  padding: 12px 6px;
+  padding: 8px 5px;
   border-bottom: 1px solid #D9D6CF;
   vertical-align: top;
   background: transparent;
@@ -623,10 +508,10 @@
 }
 
 .doc-a4-root table.voci tbody td.num {
-  padding: 12px 6px 12px 10px;
+  padding: 8px 5px 8px 10px;
   text-align: right;
   white-space: nowrap;
-  font-size: 9.5px;
+  font-size: 9px;
   color: #6B6B6B;
   font-variant-numeric: tabular-nums lining-nums;
 }
@@ -640,11 +525,11 @@
 .doc-a4-root .v-nome {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 10.5px;
+  font-size: 10px;
   color: #1A1A1A;
-  line-height: 1.32;
+  line-height: 1.28;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 2.5px;
   text-align: left;
 }
 
@@ -652,7 +537,7 @@
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   color: #01696F;
   font-weight: 700;
-  font-size: 9px;
+  font-size: 8.6px;
   margin-right: 5px;
   font-variant-numeric: tabular-nums;
 }
@@ -660,44 +545,47 @@
 .doc-a4-root .v-desc {
   display: block;
   color: #6B6B6B;
-  font-size: 8.8px;
+  font-size: 8.2pt;
   font-weight: 400;
-  line-height: 1.48;
+  line-height: 1.38;
   text-align: left;
 }
 
-/* ---------- Riepilogo Totali & Note Fiscali ---------- */
-.doc-a4-root .totali {
+/* ---------- Riepilogo Totali & Note Fiscali (atomico: .doc-totals-wrap) ---------- */
+.doc-a4-root .totali,
+.doc-a4-root .doc-totals-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 238px;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) 236px;
+  gap: 24px;
   align-items: start;
-  margin-top: 18px;
+  margin-top: 13px;
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
 .doc-a4-root .totali-note {
   text-align: left;
-  padding-top: 4px;
+  padding-top: 3px;
 }
 
 .doc-a4-root .totali-note-tit {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 7.5px;
+  font-size: 7.4px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #01696F;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   text-align: left;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .doc-a4-root .totali .nota {
   margin: 0;
-  font-size: 7.5px;
+  font-size: 7.4px;
   color: #6B6B6B;
-  line-height: 1.48;
+  line-height: 1.42;
   text-align: left;
 }
 
@@ -710,8 +598,8 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  padding: 5px 2px;
-  font-size: 9px;
+  padding: 4px 2px;
+  font-size: 8.7px;
   color: #6B6B6B;
   border-bottom: 1px solid #D9D6CF;
 }
@@ -732,14 +620,14 @@
 
 .doc-a4-root .totali .riga.totale {
   background: #0C4E54 !important;
-  color: #ffffff !important;
+  color: #FFFFFF !important;
   border-bottom: none;
-  padding: 10px 14px;
-  margin-top: 8px;
+  padding: 8px 12px;
+  margin-top: 6px;
   border-radius: 2px;
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 10px;
+  font-size: 9.5px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   display: flex;
@@ -748,12 +636,12 @@
 }
 
 .doc-a4-root .totali .riga.totale span {
-  color: #ffffff !important;
+  color: #FFFFFF !important;
 }
 
 .doc-a4-root .totali .riga.totale .num {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
@@ -761,24 +649,19 @@
 
 .doc-a4-root .rimando-continua {
   text-align: right;
-  font-size: 8px;
+  font-size: 7.8px;
   color: #6B6B6B;
   font-style: italic;
-  margin-top: 14px;
-  margin-bottom: 8px;
-  break-inside: avoid;
-  page-break-inside: avoid;
+  margin-top: 10px;
 }
 
 /* ---------- Cosa Comprende (Incluso / Escluso) ---------- */
 .doc-a4-root .due-colonne {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 28px;
-  margin-top: 8px;
-  margin-bottom: 16px;
-  break-inside: avoid;
-  page-break-inside: avoid;
+  gap: 24px;
+  margin-top: 6px;
+  margin-bottom: 12px;
 }
 
 .doc-a4-root .col-card {
@@ -786,24 +669,24 @@
   border: none;
   border-left: 2pt solid #1BA0AB;
   border-radius: 0;
-  padding: 12px 14px;
+  padding: 9px 12px;
   text-align: left;
 }
 
 .doc-a4-root .col-card.escluso {
   background: transparent;
   border-left: none;
-  padding: 12px 4px;
+  padding: 9px 4px;
 }
 
 .doc-a4-root .etichetta-incluso {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 8px;
+  font-size: 7.8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #01696F;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-align: left;
   break-after: avoid;
   page-break-after: avoid;
@@ -812,11 +695,11 @@
 .doc-a4-root .etichetta-escluso {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 8px;
+  font-size: 7.8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #6B6B6B;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-align: left;
   break-after: avoid;
   page-break-after: avoid;
@@ -826,16 +709,16 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 8.75px;
+  font-size: 8.2pt;
   color: #1A1A1A;
   text-align: left;
 }
 
 .doc-a4-root .due-colonne li {
   position: relative;
-  padding-left: 13px;
-  margin-bottom: 4.5px;
-  line-height: 1.46;
+  padding-left: 12px;
+  margin-bottom: 3.5px;
+  line-height: 1.38;
   text-align: left;
 }
 
@@ -850,7 +733,7 @@
   top: 0;
   color: #01696F;
   font-weight: 700;
-  font-size: 8.5px;
+  font-size: 8px;
 }
 
 .doc-a4-root .due-colonne .escluso ul {
@@ -863,14 +746,14 @@
   font-weight: 500;
 }
 
-/* ---------- Condizioni Contrattuali ---------- */
+/* ---------- Condizioni Contrattuali (atomico SOLO su .clause) ---------- */
 .doc-a4-root .condizioni-grid,
 .doc-a4-root .clauses-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 14px 28px;
-  margin-top: 8px;
-  margin-bottom: 18px;
+  gap: 10px 24px;
+  margin-top: 6px;
+  margin-bottom: 12px;
   break-inside: auto;
   page-break-inside: auto;
 }
@@ -881,7 +764,7 @@
   border: none;
   border-bottom: 1px solid #D9D6CF;
   border-radius: 0;
-  padding: 0 0 10px 0;
+  padding: 0 0 7px 0;
   text-align: left;
   break-inside: avoid;
   page-break-inside: avoid;
@@ -894,7 +777,41 @@
 .doc-a4-root .cond-tit {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  font-size: 8px;
+  font-size: 7.8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #01696F;
+  margin-bottom: 3px;
+  text-align: left;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-a4-root .cond-txt {
+  color: #6B6B6B;
+  font-size: 8.2pt;
+  line-height: 1.38;
+  text-align: left;
+}
+
+/* ---------- Area Firme & Accettazione (atomico: .sign-area) ---------- */
+.doc-a4-root .accettazione,
+.doc-a4-root .sign-area {
+  margin-top: 14px;
+  padding: 12px 0 4px;
+  border: none;
+  border-top: 1px solid #D9D6CF;
+  background: transparent;
+  border-radius: 0;
+  text-align: left;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.doc-a4-root .accettazione .tit {
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
+  font-weight: 700;
+  font-size: 8.3px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #01696F;
@@ -904,45 +821,11 @@
   page-break-after: avoid;
 }
 
-.doc-a4-root .cond-txt {
-  color: #6B6B6B;
-  font-size: 8.6px;
-  line-height: 1.48;
-  text-align: left;
-}
-
-/* ---------- Area Firme & Accettazione ---------- */
-.doc-a4-root .accettazione,
-.doc-a4-root .sign-area {
-  margin-top: 20px;
-  padding: 16px 0 6px;
-  border: none;
-  border-top: 1px solid #D9D6CF;
-  background: transparent;
-  border-radius: 0;
-  text-align: left;
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-}
-
-.doc-a4-root .accettazione .tit {
-  font-family: "DM Sans", "Inter", Arial, sans-serif;
-  font-weight: 700;
-  font-size: 8.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #01696F;
-  margin-bottom: 6px;
-  text-align: left;
-  break-after: avoid;
-  page-break-after: avoid;
-}
-
 .doc-a4-root .accettazione p {
-  margin: 0 0 22px;
-  font-size: 8.5px;
+  margin: 0 0 14px;
+  font-size: 8.2pt;
   color: #6B6B6B;
-  line-height: 1.48;
+  line-height: 1.38;
   text-align: left;
 }
 
@@ -955,7 +838,7 @@
 .doc-a4-root .firme {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 36px;
+  gap: 34px;
 }
 
 .doc-a4-root .firme .f {
@@ -965,7 +848,7 @@
 
 .doc-a4-root .firme .linea {
   border-bottom: 1px solid #BDBBB5;
-  height: 36px;
+  height: 32px;
   position: relative;
 }
 
@@ -973,9 +856,9 @@
   position: absolute;
   bottom: -4px;
   left: 6px;
-  height: 44px;
+  height: 40px;
   width: auto;
-  max-width: 170px;
+  max-width: 165px;
   object-fit: contain;
   pointer-events: none;
   background: transparent;
@@ -984,37 +867,20 @@
 .doc-a4-root .firme .did {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 600;
-  font-size: 8px;
+  font-size: 7.8px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #6B6B6B;
-  margin-top: 6px;
+  margin-top: 5px;
   text-align: left;
 }
 
-/* ---------- Blocco Chiusura (Firme + Footer indivisibili) ---------- */
-.doc-a4-root .blocco-chiusura {
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-}
-
-/* ---------- Footer ---------- */
+/* ---------- Running Footer Typography ---------- */
 .doc-a4-root .pieded {
-  margin-top: 10px;
-  border-top: 1px solid #D9D6CF;
-  padding-top: 6px;
-  font-size: 7.5px;
+  font-size: 7.4px;
   color: #6B6B6B;
-  line-height: 1.5;
+  line-height: 1.45;
   text-align: left;
-  break-before: avoid !important;
-  page-break-before: avoid !important;
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-}
-
-.doc-a4-root .foglio-continuo .pieded {
-  margin-top: 10px;
 }
 
 .doc-a4-root .pieded b {
@@ -1039,17 +905,15 @@
 
 /* ---------- Proforma / Nota di prestazione & Listino ---------- */
 .doc-a4-root .dicitura {
-  margin-top: 18px;
+  margin-top: 14px;
   background: #F4F3EF;
   border: none;
   border-left: 2.5pt solid #1BA0AB;
-  padding: 12px 16px;
-  font-size: 8.5px;
+  padding: 10px 14px;
+  font-size: 8.2pt;
   color: #6B6B6B;
-  line-height: 1.5;
+  line-height: 1.42;
   text-align: left;
-  break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 .doc-a4-root .dicitura b {
@@ -1060,20 +924,18 @@
 .doc-a4-root .pagamento {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 28px;
-  margin-top: 18px;
-  padding: 14px 0;
+  gap: 24px;
+  margin-top: 14px;
+  padding: 11px 0;
   border-top: 1px solid #D9D6CF;
   border-bottom: 1px solid #D9D6CF;
   background: transparent;
-  break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 .doc-a4-root .pagamento .col {
-  font-size: 8.5px;
+  font-size: 8.2pt;
   color: #6B6B6B;
-  line-height: 1.48;
+  line-height: 1.42;
   text-align: left;
 }
 
@@ -1081,14 +943,14 @@
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   color: #1A1A1A;
-  font-size: 10px;
-  margin: 4px 0;
+  font-size: 9.8px;
+  margin: 3px 0;
 }
 
 .doc-a4-root .firma-singola {
   display: flex;
   justify-content: flex-end;
-  margin-top: 26px;
+  margin-top: 20px;
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -1101,16 +963,211 @@
 
 .doc-a4-root .firma-singola .linea {
   border-bottom: 1px solid #BDBBB5;
-  height: 36px;
+  height: 32px;
   position: relative;
 }
 
 .doc-a4-root .firma-singola .did {
   font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 600;
-  font-size: 8px;
+  font-size: 7.8px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #6B6B6B;
-  margin-top: 6px;
+  margin-top: 5px;
+}
+
+/* ==========================================================================
+   MODO AUTO-COMPACT (.print-compact)
+   Applicato automaticamente dal motore di misurazione reale quando una sezione
+   misura tra il 100% e il 120% di 1 pagina A4 utile (~255mm / 964px).
+   Riduce leggermente i gap verticali, il padding td e le descrizioni (~0.6pt).
+   ========================================================================== */
+.doc-a4-root .print-compact .intestazione {
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.doc-a4-root .print-compact .intestazione.intestazione-compatta {
+  padding-bottom: 5px;
+  margin-bottom: 7px;
+}
+
+.doc-a4-root .print-compact .doc-logo-img {
+  height: 30px;
+}
+
+.doc-a4-root .print-compact .doc-logo-img.doc-logo-compact {
+  height: 22px;
+}
+
+.doc-a4-root .print-compact .intestazione .doc .tipo {
+  font-size: 19px;
+}
+
+.doc-a4-root .print-compact .intestazione.intestazione-compatta .doc .tipo {
+  font-size: 11.5px;
+}
+
+.doc-a4-root .print-compact .blocchi {
+  gap: 20px;
+  padding-bottom: 8px;
+}
+
+.doc-a4-root .print-compact .etichetta {
+  margin-bottom: 4px;
+}
+
+.doc-a4-root .print-compact .blocco .nome {
+  font-size: 11.5px;
+  margin-bottom: 2px;
+}
+
+.doc-a4-root .print-compact .blocco .righe {
+  font-size: 7.7pt;
+  line-height: 1.32;
+}
+
+.doc-a4-root .print-compact .spec-grid {
+  gap: 4px 14px;
+}
+
+.doc-a4-root .print-compact .spec-item dd {
+  font-size: 8.6px;
+  line-height: 1.28;
+}
+
+.doc-a4-root .print-compact .intro {
+  margin: 7px 0 9px;
+  padding: 6px 11px;
+  font-size: 7.6pt;
+  line-height: 1.32;
+}
+
+.doc-a4-root .print-compact .intro p {
+  margin: 0 0 2.5px;
+}
+
+.doc-a4-root .print-compact .sezione {
+  margin: 9px 0 5px;
+  padding-bottom: 3px;
+}
+
+.doc-a4-root .print-compact table.voci thead th {
+  padding: 0 4px 4px 4px;
+}
+
+.doc-a4-root .print-compact table.voci tbody td {
+  padding: 4.5px 4px;
+}
+
+.doc-a4-root .print-compact table.voci tbody td.num {
+  padding: 4.5px 4px 4.5px 8px;
+  font-size: 8.5px;
+}
+
+.doc-a4-root .print-compact .v-nome {
+  font-size: 9.3px;
+  line-height: 1.22;
+  margin-bottom: 1.5px;
+}
+
+.doc-a4-root .print-compact .v-desc {
+  font-size: 7.5pt;
+  line-height: 1.28;
+}
+
+.doc-a4-root .print-compact .totali,
+.doc-a4-root .print-compact .doc-totals-wrap {
+  margin-top: 8px;
+  gap: 18px;
+}
+
+.doc-a4-root .print-compact .totali .riga {
+  padding: 3px 2px;
+  font-size: 8.2px;
+}
+
+.doc-a4-root .print-compact .totali .riga.totale {
+  padding: 6.5px 10px;
+  margin-top: 4px;
+  font-size: 9px;
+}
+
+.doc-a4-root .print-compact .totali .riga.totale .num {
+  font-size: 11.5px;
+}
+
+.doc-a4-root .print-compact .due-colonne {
+  gap: 18px;
+  margin-top: 4px;
+  margin-bottom: 7px;
+}
+
+.doc-a4-root .print-compact .col-card {
+  padding: 6.5px 10px;
+}
+
+.doc-a4-root .print-compact .due-colonne li {
+  margin-bottom: 2px;
+  font-size: 7.5pt;
+  line-height: 1.28;
+}
+
+.doc-a4-root .print-compact .condizioni-grid,
+.doc-a4-root .print-compact .clauses-grid {
+  gap: 6px 18px;
+  margin-top: 4px;
+  margin-bottom: 7px;
+}
+
+.doc-a4-root .print-compact .cond-card,
+.doc-a4-root .print-compact .clause {
+  padding: 0 0 4.5px 0;
+}
+
+.doc-a4-root .print-compact .cond-tit {
+  margin-bottom: 2px;
+}
+
+.doc-a4-root .print-compact .cond-txt {
+  font-size: 7.5pt;
+  line-height: 1.28;
+}
+
+.doc-a4-root .print-compact .accettazione,
+.doc-a4-root .print-compact .sign-area {
+  margin-top: 8px;
+  padding: 8px 0 2px;
+}
+
+.doc-a4-root .print-compact .accettazione p {
+  margin: 0 0 9px;
+  font-size: 7.5pt;
+  line-height: 1.28;
+}
+
+.doc-a4-root .print-compact .firme .linea,
+.doc-a4-root .print-compact .firma-singola .linea {
+  height: 26px;
+}
+
+.doc-a4-root .print-compact .img-firma-auto {
+  height: 34px;
+}
+
+.doc-a4-root .print-compact .dicitura {
+  margin-top: 9px;
+  padding: 7px 11px;
+  font-size: 7.5pt;
+  line-height: 1.3;
+}
+
+.doc-a4-root .print-compact .pagamento {
+  margin-top: 9px;
+  padding: 8px 0;
+}
+
+.doc-a4-root .print-compact .firma-singola {
+  margin-top: 12px;
 }

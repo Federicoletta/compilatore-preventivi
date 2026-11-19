@@ -1,15 +1,25 @@
 /**
  * Motore unificato di rendering editoriale A4 (Anteprima Live + Stampa / PDF).
  * - Unico template HTML condiviso (zero divergenze tra schermo e carta).
+ * - Vero footer a piè di pagina su ogni foglio (Table Spacer + Fixed Footer).
+ * - Misurazione reale del DOM prima di window.print() per Auto-Compact (100%–120%)
+ *   e Salto Pagina Intelligente dell'Allegato (soglia 42% spazio libero).
  * - Sanitizzazione esc() rigorosa su tutti i campi utente (anti-XSS).
- * - Asset esterni leggeri da /assets/ (logo SVG e firma PNG).
  */
 
 import { ASSET_PATHS, IO } from "./config.js";
 import { calcolaTotali, dicituraFiscale, stimaIngombroStampa } from "./calculations.js";
 import { aIsoLocale, dataIt, esc, euro, maiuscola, nomeFileDocumento } from "./formatters.js";
 
-function renderTotalsBlock(t, { labelImponibile = "Imponibile", scontoTxt = "", senzaNota = false, titoloTotale = "Totale Preventivo" } = {}) {
+const USABLE_PAGE_HEIGHT_MM = 255; // A4 (297mm) - margini (24mm) - footer spacer (14mm) - tolleranza (4mm)
+const FALLBACK_PAGE_HEIGHT_PX = 964; // ~255mm a 96dpi
+const AUTO_COMPACT_MAX_RATIO = 1.2; // 100%–120% di 1 pagina -> attiva .print-compact
+const FLOW_ANNEX_FREE_RATIO_MIN = 0.42; // >42% di foglio libero sull'ultima pagina -> .flow-annex
+
+function renderTotalsBlock(
+  t,
+  { labelImponibile = "Imponibile", scontoTxt = "", senzaNota = false, titoloTotale = "Totale Preventivo" } = {}
+) {
   const row = (cls, label, val) =>
     `<div class="riga ${cls}"><span>${label}</span><span class="num">${val}</span></div>`;
 
@@ -43,7 +53,7 @@ function renderTotalsBlock(t, { labelImponibile = "Imponibile", scontoTxt = "", 
     ? `<div class="totali-note"><div class="totali-note-tit">Note fiscali</div><p class="nota">${esc(note)}</p></div>`
     : `<div class="totali-note"></div>`;
 
-  return `<div class="totali">${noteCol}<div class="box">${html}</div></div>`;
+  return `<div class="totali doc-totals-wrap">${noteCol}<div class="box">${html}</div></div>`;
 }
 
 export function renderFooterHtml(quote = {}, issuerFallback = {}) {
@@ -62,7 +72,7 @@ export function renderFooterHtml(quote = {}, issuerFallback = {}) {
 
   const siteUrl = IO.sito.startsWith("http") ? IO.sito : `https://${IO.sito}`;
 
-  return `<footer class="pieded">
+  return `<footer class="pieded doc-running-footer">
     <div class="footer-riga-1">
       <b>${esc(IO.nome)}</b> · ${esc(IO.ruolo)}${fisc ? ` · <span class="dati-fisc">${fisc}</span>` : ""}
     </div>
@@ -70,6 +80,26 @@ export function renderFooterHtml(quote = {}, issuerFallback = {}) {
       ${esc(IO.citta)} · <a href="mailto:${esc(IO.mail)}">${esc(IO.mail)}</a> · <a href="tel:${esc(IO.tel.replace(/\s+/g, ""))}">${esc(IO.tel)}</a> · <a href="${esc(siteUrl)}" target="_blank" rel="noopener">${esc(IO.sito)}</a>
     </div>
   </footer>`;
+}
+
+function wrapInPrintShell(bodyHtml, footerHtml) {
+  return `<div class="doc-a4-root">
+    <table class="print-shell" role="presentation">
+      <tbody>
+        <tr>
+          <td class="print-shell-body">${bodyHtml}</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="print-shell-foot">
+            <div class="print-footer-spacer" aria-hidden="true"></div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+    ${footerHtml}
+  </div>`;
 }
 
 function renderLogoImg(compact = false) {
@@ -82,7 +112,25 @@ function renderSignatureImg(showSignature) {
 }
 
 /**
+ * Calcolo puro della decisione di salto pagina per l'Allegato (usabile anche in test).
+ * - Se .doc-section-quote <= 1 pagina -> "force-page-break"
+ * - Se > 1 pagina e spazio libero sull'ultima pagina > 42% -> "flow-annex"
+ * - Altrimenti -> "force-page-break"
+ */
+export function computeAnnexBreakMode(quoteHeightPx, pageHeightPx = FALLBACK_PAGE_HEIGHT_PX) {
+  if (!pageHeightPx || pageHeightPx <= 0) return "force-page-break";
+  if (quoteHeightPx <= pageHeightPx) {
+    return "force-page-break";
+  }
+  const remainder = quoteHeightPx % pageHeightPx;
+  const usedOnLastPage = remainder === 0 ? pageHeightPx : remainder;
+  const freeRatio = (pageHeightPx - usedOnLastPage) / pageHeightPx;
+  return freeRatio > FLOW_ANNEX_FREE_RATIO_MIN ? "flow-annex" : "force-page-break";
+}
+
+/**
  * Genera l'HTML A4 completo del Preventivo (condiviso al 100% tra Anteprima Live e Stampa PDF).
+ * Separa nettamente .doc-section-quote e .doc-section-annex dentro .print-shell + .doc-running-footer.
  */
 export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = null } = {}) {
   const p = quote || {};
@@ -194,7 +242,7 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
 
   const condHtml = condizioni.length
     ? `<div class="sezione">Condizioni contrattuali</div>
-       <div class="condizioni-grid">${condizioni
+       <div class="condizioni-grid clauses-grid">${condizioni
          .map((c, i) => {
            const titolo = Array.isArray(c) ? c[0] : c?.titolo;
            const testo = Array.isArray(c) ? c[1] : c?.testo;
@@ -251,67 +299,41 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
     </div>
   </section>`;
 
+  // Classe iniziale per l'anteprima a schermo; in stampa viene ricalcolata su misure DOM reali.
   const stima = stimaIngombroStampa(p);
+  const initialAnnexMode = stima.pagina1Compatta ? "force-page-break" : "flow-annex";
 
-  if (stima.pagina1Compatta) {
-    return `<div class="doc-a4-root">
-      <div class="foglio-stampa foglio-preventivo">
-        ${headerPrincipale}
-        ${blocchiClienteProgetto}
-        ${introHtml}
-        <div class="sezione">Voci di preventivo</div>
-        ${tabellaVoci}
-        ${renderTotalsBlock(t, { scontoTxt: p.sconto_txt })}
-        <div class="spazio-flessibile"></div>
-        <div class="blocco-chiusura">
-          <div class="rimando-continua">Segue allegato contrattuale, condizioni e firme a Pagina 2 →</div>
-          ${renderFooterHtml(p)}
-        </div>
-      </div>
-
-      <div class="foglio-stampa allegato-condizioni inizia-nuova-pagina">
-        <header class="intestazione intestazione-compatta">
-          <div class="intestazione-logo">${renderLogoImg(true)}</div>
-          <div class="doc">
-            <div class="tipo">Allegato Contrattuale &amp; Condizioni</div>
-            <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div>
-          </div>
-        </header>
-        ${comprendeHtml}
-        ${opzHtml}
-        ${condHtml}
-        <div class="blocco-chiusura">
-          ${bloccoAccettazione}
-          ${renderFooterHtml(p)}
-        </div>
-      </div>
-    </div>`;
-  }
-
-  return `<div class="doc-a4-root">
-    <div class="foglio-stampa foglio-continuo">
+  const bodyHtml = `
+    <div class="doc-section-quote">
       ${headerPrincipale}
       ${blocchiClienteProgetto}
       ${introHtml}
       <div class="sezione">Voci di preventivo</div>
       ${tabellaVoci}
       ${renderTotalsBlock(t, { scontoTxt: p.sconto_txt })}
-
-      <div class="allegato-condizioni inizia-nuova-pagina">
-        <div class="allegato-header-inline">
-          <div class="tit-inline">Allegato Contrattuale &amp; Condizioni</div>
-          <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>
-        </div>
-        ${comprendeHtml}
-        ${opzHtml}
-        ${condHtml}
-        <div class="blocco-chiusura">
-          ${bloccoAccettazione}
-          ${renderFooterHtml(p)}
-        </div>
-      </div>
+      <div class="rimando-continua"${initialAnnexMode === "flow-annex" ? " hidden" : ""}>Segue allegato contrattuale, condizioni e firme nella pagina seguente →</div>
     </div>
-  </div>`;
+
+    <div class="doc-section-annex allegato-condizioni ${initialAnnexMode}">
+      <header class="intestazione intestazione-compatta annex-header-page">
+        <div class="intestazione-logo">${renderLogoImg(true)}</div>
+        <div class="doc">
+          <div class="tipo">Allegato Contrattuale &amp; Condizioni</div>
+          <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div>
+        </div>
+      </header>
+      <div class="allegato-header-inline annex-header-flow">
+        <div class="tit-inline">Allegato Contrattuale &amp; Condizioni</div>
+        <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>
+      </div>
+      ${comprendeHtml}
+      ${opzHtml}
+      ${condHtml}
+      ${bloccoAccettazione}
+    </div>
+  `;
+
+  return wrapInPrintShell(bodyHtml, renderFooterHtml(p));
 }
 
 /**
@@ -363,8 +385,8 @@ export function renderSecondDocumentHtml(quote, { showSignature = true, totals =
     .filter(Boolean)
     .join(" · ");
 
-  return `<div class="doc-a4-root">
-    <div class="foglio-stampa foglio-secondo">
+  const bodyHtml = `
+    <div class="doc-section-second foglio-secondo">
       <header class="intestazione">
         <div class="intestazione-logo">${renderLogoImg(false)}</div>
         <div class="doc">
@@ -416,18 +438,16 @@ export function renderSecondDocumentHtml(quote, { showSignature = true, totals =
           Causale: ${esc(titolo)} rif. ${esc(p.numero)}${progetto.titolo ? ` · ${esc(progetto.titolo)}` : ""}
         </div>
       </section>
-      <div class="spazio-flessibile"></div>
-      <div class="blocco-chiusura">
-        <div class="firma-singola sign-area">
-          <div class="b">
-            <div class="linea">${renderSignatureImg(showSignature)}</div>
-            <div class="did">${esc(IO.nome)}</div>
-          </div>
+      <div class="firma-singola sign-area">
+        <div class="b">
+          <div class="linea">${renderSignatureImg(showSignature)}</div>
+          <div class="did">${esc(IO.nome)}</div>
         </div>
-        ${renderFooterHtml(p)}
       </div>
     </div>
-  </div>`;
+  `;
+
+  return wrapInPrintShell(bodyHtml, renderFooterHtml(p));
 }
 
 /**
@@ -463,8 +483,8 @@ export function renderPriceListDocumentHtml(items = [], issuer = {}) {
     })
     .join("");
 
-  return `<div class="doc-a4-root">
-    <div class="foglio-stampa foglio-continuo">
+  const bodyHtml = `
+    <div class="doc-section-pricelist">
       <header class="intestazione">
         <div class="intestazione-logo">${renderLogoImg(false)}</div>
         <div class="doc">
@@ -477,14 +497,15 @@ export function renderPriceListDocumentHtml(items = [], issuer = {}) {
         imposte e maggiorazioni. Gli importi non costituiscono offerta al pubblico e vanno confermati caso per caso.
       </div>
       ${sezioni || `<p class="v-desc">Nessuna voce presente nel listino.</p>`}
-      ${renderFooterHtml({ io: issuer })}
     </div>
-  </div>`;
+  `;
+
+  return wrapInPrintShell(bodyHtml, renderFooterHtml({ io: issuer }));
 }
 
-async function waitForPrintImages(container) {
+async function waitForPrintAssets(container) {
   const imgs = [...container.querySelectorAll("img")];
-  await Promise.all(
+  const imgWait = Promise.all(
     imgs.map((img) => {
       if (img.complete) return Promise.resolve();
       return new Promise((resolve) => {
@@ -494,6 +515,94 @@ async function waitForPrintImages(container) {
       });
     })
   );
+
+  const fontWait =
+    typeof document !== "undefined" && document.fonts?.ready
+      ? Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 600))])
+      : Promise.resolve();
+
+  await Promise.all([imgWait, fontWait]);
+}
+
+function measureUsablePageHeightPx(stage) {
+  const probe = document.createElement("div");
+  probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;width:1px;height:${USABLE_PAGE_HEIGHT_MM}mm;`;
+  stage.appendChild(probe);
+  const measured = probe.getBoundingClientRect().height;
+  probe.remove();
+  return measured > 100 ? measured : FALLBACK_PAGE_HEIGHT_PX;
+}
+
+/**
+ * Motore Auto-Fit Anti-Sbordo & Salto Pagina Intelligente:
+ * Misura l'altezza reale del DOM a larghezza A4 utile (182mm) prima di window.print().
+ */
+function applySmartPrintLayout(stage) {
+  stage.classList.add("is-measuring-print");
+
+  try {
+    const pageHeightPx = measureUsablePageHeightPx(stage);
+    const quoteSec = stage.querySelector(".doc-section-quote");
+    const annexSec = stage.querySelector(".doc-section-annex");
+    const secondSec = stage.querySelector(".doc-section-second");
+
+    // Documento secondario (Proforma / Nota di prestazione): Auto-Compact se sborda leggermente (100%–120%)
+    if (secondSec) {
+      secondSec.classList.remove("print-compact");
+      const h = secondSec.getBoundingClientRect().height;
+      if (h > pageHeightPx && h <= pageHeightPx * AUTO_COMPACT_MAX_RATIO) {
+        secondSec.classList.add("print-compact");
+      }
+      return;
+    }
+
+    if (!quoteSec) return;
+
+    const rimandoEl = quoteSec.querySelector(".rimando-continua");
+
+    // Reset iniziale per misurazione pulita
+    quoteSec.classList.remove("print-compact");
+    if (annexSec) {
+      annexSec.classList.remove("print-compact", "force-page-break", "flow-annex");
+      annexSec.classList.add("force-page-break");
+    }
+    if (rimandoEl) rimandoEl.hidden = true;
+
+    // 1) Misura .doc-section-quote e applica Auto-Compact se tra 100% e 120% di 1 pagina
+    let quoteHeight = quoteSec.getBoundingClientRect().height;
+    if (quoteHeight > pageHeightPx && quoteHeight <= pageHeightPx * AUTO_COMPACT_MAX_RATIO) {
+      quoteSec.classList.add("print-compact");
+      quoteHeight = quoteSec.getBoundingClientRect().height;
+    }
+
+    if (!annexSec) return;
+
+    // 2) Salto Pagina Intelligente per l'Allegato (soglia 42% spazio libero sull'ultima pagina)
+    const annexMode = computeAnnexBreakMode(quoteHeight, pageHeightPx);
+    annexSec.classList.remove("force-page-break", "flow-annex");
+    annexSec.classList.add(annexMode);
+
+    // Mostra il rimando solo se c'è un salto pagina reale e se non fa sbordare Pagina 1
+    if (rimandoEl) {
+      if (annexMode === "force-page-break") {
+        rimandoEl.hidden = false;
+        const heightWithRimando = quoteSec.getBoundingClientRect().height;
+        if (quoteHeight <= pageHeightPx && heightWithRimando > pageHeightPx) {
+          rimandoEl.hidden = true;
+        }
+      } else {
+        rimandoEl.hidden = true;
+      }
+    }
+
+    // 3) Misura .doc-section-annex (con header corretto già attivo) e applica Auto-Compact se tra 100% e 120% di 1 pagina
+    const annexHeight = annexSec.getBoundingClientRect().height;
+    if (annexHeight > pageHeightPx && annexHeight <= pageHeightPx * AUTO_COMPACT_MAX_RATIO) {
+      annexSec.classList.add("print-compact");
+    }
+  } finally {
+    stage.classList.remove("is-measuring-print");
+  }
 }
 
 async function mountAndPrint(html, docTitle) {
@@ -502,7 +611,8 @@ async function mountAndPrint(html, docTitle) {
   const prevTitle = document.title;
   stage.innerHTML = html;
   document.title = docTitle;
-  await waitForPrintImages(stage);
+  await waitForPrintAssets(stage);
+  applySmartPrintLayout(stage);
 
   const restore = () => {
     document.title = prevTitle;
