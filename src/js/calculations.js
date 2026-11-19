@@ -170,16 +170,18 @@ export function dicituraFiscale(t) {
  */
 export function stimaIngombroStampa(quote) {
   const voci = Array.isArray(quote?.voci) ? quote.voci : [];
+  const opzioni = Array.isArray(quote?.opzioni) ? quote.opzioni : [];
   let righeVoci = 0;
   for (const v of voci) {
     const descLen = String(v?.desc || "").trim().length;
-    const righeDesc = descLen > 0 ? Math.ceil(descLen / 72) : 0;
-    righeVoci += 1.9 + righeDesc;
+    const righeDesc = descLen > 0 ? Math.ceil(descLen / 76) : 0;
+    righeVoci += 1.8 + righeDesc;
   }
+  const righeOpz = opzioni.length > 0 ? 1.4 + opzioni.length * 1.4 : 0;
   const introLen = String(quote?.progetto?.intro || "").trim().length;
   const extraIntro = introLen > 240 ? Math.ceil((introLen - 240) / 105) : 0;
-  const ingombroP1 = righeVoci + extraIntro;
-  const pagina1Compatta = voci.length <= 4 && ingombroP1 <= 16;
+  const ingombroP1 = righeVoci + righeOpz + extraIntro;
+  const pagina1Compatta = voci.length <= 4 && ingombroP1 <= 17;
 
   return {
     totVoci: voci.length,

@@ -33,9 +33,10 @@ import { showToast } from "./ui/modal.js";
 
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
+  document.documentElement.dataset.tema = theme;
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   if (themeMeta) {
-    themeMeta.setAttribute("content", theme === "dark" ? "#0F1714" : "#1B4332");
+    themeMeta.setAttribute("content", theme === "dark" ? "#080B10" : "#0C4E54");
   }
   const btn = document.getElementById("btn-toggle-theme");
   if (btn) {

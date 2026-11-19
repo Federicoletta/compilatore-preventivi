@@ -262,6 +262,7 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
         <div class="sezione">Voci di preventivo</div>
         ${tabellaVoci}
         ${renderTotalsBlock(t, { scontoTxt: p.sconto_txt })}
+        ${opzHtml}
         <div class="spazio-flessibile"></div>
         <div class="rimando-continua">Segue allegato contrattuale, condizioni e firme a Pagina 2 →</div>
         ${renderFooterHtml(p)}
@@ -271,11 +272,10 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
         <header class="intestazione intestazione-compatta">
           <div class="intestazione-logo">${renderLogoImg(true)}</div>
           <div class="doc">
-            <div class="tipo">Allegato Contrattuale</div>
+            <div class="tipo">Allegato Contrattuale &amp; Condizioni</div>
             <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div>
           </div>
         </header>
-        ${opzHtml}
         ${comprendeHtml}
         ${condHtml}
         ${bloccoAccettazione}
@@ -295,7 +295,7 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
       ${renderTotalsBlock(t, { scontoTxt: p.sconto_txt })}
       ${opzHtml}
 
-      <div class="allegato-condizioni flusso-continuo">
+      <div class="allegato-condizioni inizia-nuova-pagina">
         <div class="allegato-header-inline">
           <div class="tit-inline">Allegato Contrattuale &amp; Condizioni</div>
           <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>

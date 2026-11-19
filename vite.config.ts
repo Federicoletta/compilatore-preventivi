@@ -31,8 +31,8 @@ export default defineConfig(() => {
           scope: '/',
           display: 'standalone',
           orientation: 'any',
-          theme_color: '#1B4332',
-          background_color: '#F8F9F8',
+          theme_color: '#0C4E54',
+          background_color: '#EFEEE9',
           lang: 'it',
           categories: ['business', 'productivity', 'finance'],
           icons: [

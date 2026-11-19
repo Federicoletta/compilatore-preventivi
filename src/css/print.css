@@ -18,7 +18,7 @@
 @media print {
   @page {
     size: A4;
-    margin: 18mm 20mm;
+    margin: 13mm 15mm;
   }
 
   html,
@@ -44,6 +44,107 @@
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
+  }
+
+  .doc-a4-root {
+    font-size: 8.75px;
+    line-height: 1.42;
+  }
+
+  .doc-a4-root .foglio-stampa.foglio-preventivo,
+  .doc-a4-root .foglio-stampa.allegato-condizioni.inizia-nuova-pagina,
+  .doc-a4-root .foglio-stampa.foglio-secondo {
+    min-height: 252mm;
+  }
+
+  .doc-a4-root .intestazione {
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+  }
+
+  .doc-a4-root .intestazione.intestazione-compatta {
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+
+  .doc-a4-root .blocchi {
+    padding-bottom: 12px;
+  }
+
+  .doc-a4-root .spec-grid {
+    gap: 7px 18px;
+  }
+
+  .doc-a4-root .intro {
+    margin: 12px 0 14px;
+    padding: 9px 14px;
+  }
+
+  .doc-a4-root .sezione {
+    margin: 14px 0 8px;
+    padding-bottom: 4px;
+  }
+
+  .doc-a4-root table.voci tbody td {
+    padding: 9px 0;
+  }
+
+  .doc-a4-root table.voci tbody td.num {
+    padding: 9px 0 9px 10px;
+  }
+
+  .doc-a4-root .totali {
+    margin-top: 12px;
+  }
+
+  .doc-a4-root .totali .riga {
+    padding: 4px 2px;
+  }
+
+  .doc-a4-root .totali .riga.totale {
+    padding: 8px 12px;
+    margin-top: 6px;
+  }
+
+  .doc-a4-root .rimando-continua {
+    margin-top: 8px;
+    margin-bottom: 4px;
+  }
+
+  .doc-a4-root .due-colonne {
+    gap: 22px;
+    margin-top: 6px;
+    margin-bottom: 10px;
+  }
+
+  .doc-a4-root .col-card {
+    padding: 9px 12px;
+  }
+
+  .doc-a4-root .condizioni-grid,
+  .doc-a4-root .clauses-grid {
+    gap: 10px 24px;
+    margin-top: 6px;
+    margin-bottom: 12px;
+  }
+
+  .doc-a4-root .cond-card,
+  .doc-a4-root .clause {
+    padding: 0 0 7px 0;
+  }
+
+  .doc-a4-root .accettazione,
+  .doc-a4-root .sign-area {
+    margin-top: 12px;
+    padding: 12px 0 4px;
+  }
+
+  .doc-a4-root .accettazione p {
+    margin: 0 0 14px;
+  }
+
+  .doc-a4-root .pieded {
+    padding-top: 7px;
   }
 }
 
@@ -82,14 +183,16 @@
   min-height: 254mm;
 }
 
-.doc-a4-root .foglio-stampa.inizia-nuova-pagina {
+.doc-a4-root .foglio-stampa.inizia-nuova-pagina,
+.doc-a4-root .allegato-condizioni {
   break-before: page;
   page-break-before: always;
 }
 
 /* In anteprima su schermo, separa visivamente Pagina 1 e Pagina 2 */
 @media screen {
-  .a4-sheet-frame .foglio-stampa.inizia-nuova-pagina {
+  .a4-sheet-frame .foglio-stampa.inizia-nuova-pagina,
+  .a4-sheet-frame .allegato-condizioni.flusso-continuo {
     margin-top: 24px;
     padding-top: 24px;
     border-top: 2px dashed #D4D4D8;
@@ -97,11 +200,11 @@
 }
 
 .doc-a4-root .allegato-condizioni.flusso-continuo {
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 1px solid #E4E4E7;
-  break-before: auto;
-  page-break-before: auto;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  break-before: page;
+  page-break-before: always;
 }
 
 .doc-a4-root .allegato-header-inline {
@@ -246,6 +349,8 @@
   color: #1B4332;
   margin-bottom: 8px;
   text-align: left;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .doc-a4-root .blocco .nome {
@@ -581,6 +686,8 @@
   color: #1B4332;
   margin-bottom: 8px;
   text-align: left;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .doc-a4-root .etichetta-escluso {
@@ -592,6 +699,8 @@
   color: #71717A;
   margin-bottom: 8px;
   text-align: left;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .doc-a4-root .due-colonne ul {
@@ -636,12 +745,15 @@
 }
 
 /* ---------- Condizioni Contrattuali ---------- */
-.doc-a4-root .condizioni-grid {
+.doc-a4-root .condizioni-grid,
+.doc-a4-root .clauses-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px 28px;
   margin-top: 8px;
   margin-bottom: 18px;
+  break-inside: auto;
+  page-break-inside: auto;
 }
 
 .doc-a4-root .cond-card,
@@ -669,6 +781,8 @@
   color: #1B4332;
   margin-bottom: 4px;
   text-align: left;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .doc-a4-root .cond-txt {
@@ -701,6 +815,8 @@
   color: #1B4332;
   margin-bottom: 6px;
   text-align: left;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .doc-a4-root .accettazione p {
