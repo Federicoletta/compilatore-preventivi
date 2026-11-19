@@ -13,8 +13,21 @@ import { aIsoLocale, dataIt, esc, euro, maiuscola, nomeFileDocumento } from "./f
 
 const USABLE_PAGE_HEIGHT_MM = 255; // A4 (297mm) - margini (24mm) - footer spacer (14mm) - tolleranza (4mm)
 const FALLBACK_PAGE_HEIGHT_PX = 964; // ~255mm a 96dpi
-const AUTO_COMPACT_MAX_RATIO = 1.2; // 100%–120% di 1 pagina -> attiva .print-compact
+const AUTO_COMPACT_MAX_RATIO = 1.2; // 100%–120% di 1 pagina -> attiva .print-compact (Preventivo)
+const ANNEX_AUTO_COMPACT_MAX_RATIO = 1.22; // 100%–122% di 1 pagina -> tenta .print-compact (Allegato)
 const FLOW_ANNEX_FREE_RATIO_MIN = 0.42; // >42% di foglio libero sull'ultima pagina -> .flow-annex
+
+function formatPiva(raw) {
+  const val = String(raw || "").trim();
+  if (!val) return "";
+  return /^p\.?\s*iva\b|^p\.\s*iva/i.test(val) ? val : `P. IVA ${val}`;
+}
+
+function formatCf(raw) {
+  const val = String(raw || "").trim();
+  if (!val) return "";
+  return /^c\.\s*f\.?|^cf(?:\s|:)/i.test(val) ? val : `C.F. ${val}`;
+}
 
 function renderTotalsBlock(
   t,
@@ -64,8 +77,8 @@ export function renderFooterHtml(quote = {}, issuerFallback = {}) {
   const cfVal = String(io.cf || "").trim();
 
   const fisc = [
-    haPartitaIva && pivaVal ? `P. IVA ${esc(pivaVal)}` : "",
-    cfVal ? `C.F. ${esc(cfVal)}` : "",
+    haPartitaIva && pivaVal ? esc(formatPiva(pivaVal)) : "",
+    cfVal ? esc(formatCf(cfVal)) : "",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -177,9 +190,7 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
   const clienteDetails = [
     cliente.ref,
     cliente.indirizzo,
-    [cliente.piva ? `P. IVA ${cliente.piva}` : "", cliente.cf ? `C.F. ${cliente.cf}` : ""]
-      .filter(Boolean)
-      .join(" · "),
+    [formatPiva(cliente.piva), formatCf(cliente.cf)].filter(Boolean).join(" · "),
     [cliente.sdi ? `SDI ${cliente.sdi}` : "", cliente.pec ? `PEC ${cliente.pec}` : ""]
       .filter(Boolean)
       .join(" · "),
@@ -241,18 +252,20 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
       : "";
 
   const condHtml = condizioni.length
-    ? `<div class="sezione">Condizioni contrattuali</div>
-       <div class="condizioni-grid clauses-grid">${condizioni
-         .map((c, i) => {
-           const titolo = Array.isArray(c) ? c[0] : c?.titolo;
-           const testo = Array.isArray(c) ? c[1] : c?.testo;
-           const isLastOdd = i === condizioni.length - 1 && condizioni.length % 2 !== 0;
-           return `<div class="cond-card clause${isLastOdd ? " clause-full" : ""}">
-             <div class="cond-tit">${esc(titolo)}</div>
-             <div class="cond-txt">${esc(testo)}</div>
-           </div>`;
-         })
-         .join("")}</div>`
+    ? `<div class="doc-section-conditions">
+         <div class="sezione">Condizioni contrattuali</div>
+         <div class="condizioni-grid clauses-grid">${condizioni
+           .map((c, i) => {
+             const titolo = Array.isArray(c) ? c[0] : c?.titolo;
+             const testo = Array.isArray(c) ? c[1] : c?.testo;
+             const isLastOdd = i === condizioni.length - 1 && condizioni.length % 2 !== 0;
+             return `<div class="cond-card clause${isLastOdd ? " clause-full" : ""}">
+               <div class="cond-tit">${esc(titolo)}</div>
+               <div class="cond-txt">${esc(testo)}</div>
+             </div>`;
+           })
+           .join("")}</div>
+       </div>`
     : "";
 
   const bloccoAccettazione = `<section class="accettazione sign-area">
@@ -315,21 +328,39 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
     </div>
 
     <div class="doc-section-annex allegato-condizioni ${initialAnnexMode}">
-      <header class="intestazione intestazione-compatta annex-header-page">
-        <div class="intestazione-logo">${renderLogoImg(true)}</div>
-        <div class="doc">
-          <div class="tipo">Allegato Contrattuale &amp; Condizioni</div>
-          <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div>
-        </div>
-      </header>
-      <div class="allegato-header-inline annex-header-flow">
-        <div class="tit-inline">Allegato Contrattuale &amp; Condizioni</div>
-        <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>
-      </div>
-      ${comprendeHtml}
-      ${opzHtml}
-      ${condHtml}
-      ${bloccoAccettazione}
+      <table class="annex-shell" role="presentation">
+        <thead class="annex-header-page">
+          <tr>
+            <th class="annex-shell-head">
+              <header class="intestazione intestazione-compatta">
+                <div class="intestazione-logo">${renderLogoImg(true)}</div>
+                <div class="doc">
+                  <div class="tipo">Allegato Contrattuale &amp; Condizioni</div>
+                  <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div>
+                </div>
+              </header>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="annex-row-main">
+            <td class="annex-shell-body">
+              <div class="allegato-header-inline annex-header-flow">
+                <div class="tit-inline">Allegato Contrattuale &amp; Condizioni</div>
+                <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>
+              </div>
+              ${comprendeHtml}
+              ${opzHtml}
+            </td>
+          </tr>
+          <tr class="annex-row-conditions">
+            <td class="annex-shell-body">
+              ${condHtml}
+              ${bloccoAccettazione}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   `;
 
@@ -357,8 +388,8 @@ export function renderSecondDocumentHtml(quote, { showSignature = true, totals =
     <div class="righe">
       ${esc(IO.ruolo)}<br>
       ${io.indirizzo ? `${esc(io.indirizzo)}<br>` : ""}
-      ${pIva && io.piva ? `P. IVA ${esc(io.piva)}<br>` : ""}
-      ${io.cf ? `C.F. ${esc(io.cf)}<br>` : ""}
+      ${pIva && io.piva ? `${esc(formatPiva(io.piva))}<br>` : ""}
+      ${io.cf ? `${esc(formatCf(io.cf))}<br>` : ""}
       ${esc(IO.tel)} · ${esc(IO.mail)}<br>
       <a href="${esc(siteUrl)}" target="_blank" rel="noopener">${esc(IO.sito)}</a>
     </div>
@@ -366,9 +397,7 @@ export function renderSecondDocumentHtml(quote, { showSignature = true, totals =
 
   const committenteRighe = [
     cliente.indirizzo,
-    [cliente.piva ? `P. IVA ${cliente.piva}` : "", cliente.cf ? `C.F. ${cliente.cf}` : ""]
-      .filter(Boolean)
-      .join(" · "),
+    [formatPiva(cliente.piva), formatCf(cliente.cf)].filter(Boolean).join(" · "),
     cliente.sdi ? `Codice SDI: ${cliente.sdi}` : "",
     cliente.pec ? `PEC: ${cliente.pec}` : "",
   ]
@@ -559,6 +588,8 @@ function applySmartPrintLayout(stage) {
     if (!quoteSec) return;
 
     const rimandoEl = quoteSec.querySelector(".rimando-continua");
+    const condRow = annexSec ? annexSec.querySelector(".annex-row-conditions") : null;
+    const condSec = annexSec ? annexSec.querySelector(".doc-section-conditions") : null;
 
     // Reset iniziale per misurazione pulita
     quoteSec.classList.remove("print-compact");
@@ -566,6 +597,8 @@ function applySmartPrintLayout(stage) {
       annexSec.classList.remove("print-compact", "force-page-break", "flow-annex");
       annexSec.classList.add("force-page-break");
     }
+    if (condRow) condRow.classList.remove("break-conditions-page");
+    if (condSec) condSec.classList.remove("break-conditions-page");
     if (rimandoEl) rimandoEl.hidden = true;
 
     // 1) Misura .doc-section-quote e applica Auto-Compact se tra 100% e 120% di 1 pagina
@@ -595,10 +628,34 @@ function applySmartPrintLayout(stage) {
       }
     }
 
-    // 3) Misura .doc-section-annex (con header corretto già attivo) e applica Auto-Compact se tra 100% e 120% di 1 pagina
+    // 3) Misura .doc-section-annex:
+    //    - Se rientra in 1 pagina -> invariato (2 pagine pulite).
+    //    - Se sfora fino al 122% -> prova .print-compact per farlo rientrare in Pagina 2.
+    //    - Se supera comunque 1 pagina -> rimuove .print-compact e manda in blocco
+    //      CONDIZIONI CONTRATTUALI + Accettazione & Firme su Pagina 3 (con thead ripetuto).
     const annexHeight = annexSec.getBoundingClientRect().height;
-    if (annexHeight > pageHeightPx && annexHeight <= pageHeightPx * AUTO_COMPACT_MAX_RATIO) {
-      annexSec.classList.add("print-compact");
+    if (annexHeight > pageHeightPx) {
+      let fitsInOnePage = false;
+
+      if (annexHeight <= pageHeightPx * ANNEX_AUTO_COMPACT_MAX_RATIO) {
+        annexSec.classList.add("print-compact");
+        const compactHeight = annexSec.getBoundingClientRect().height;
+        if (compactHeight <= pageHeightPx) {
+          fitsInOnePage = true;
+        } else {
+          annexSec.classList.remove("print-compact");
+        }
+      }
+
+      if (!fitsInOnePage && (condRow || condSec)) {
+        const hasContentBeforeConditions = Boolean(
+          annexSec.querySelector(".due-colonne, .voci-opzioni")
+        );
+        if (hasContentBeforeConditions) {
+          if (condRow) condRow.classList.add("break-conditions-page");
+          if (condSec) condSec.classList.add("break-conditions-page");
+        }
+      }
     }
   } finally {
     stage.classList.remove("is-measuring-print");
