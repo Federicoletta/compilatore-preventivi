@@ -1,5 +1,6 @@
 /* ==========================================================================
-   STAMPA & ESPORTAZIONE PDF A4 — DESIGN EDITORIALE
+   FOGLIO EDITORIALE A4 UNIFICATO — ANTEPRIMA LIVE & STAMPA PDF
+   Condiviso al 100% tra .doc-a4-root (anteprima) e #stampa (stampa @media print).
    Palette:
      Primario istituzionale: #1B4332 (Verde bosco / petrolio scuro)
      Testo principale:       #18181B (Nero carbone)
@@ -12,16 +13,6 @@
 
 #stampa {
   display: none;
-}
-
-#stampa.rendering-pdf {
-  display: block !important;
-  width: 210mm !important;
-  background: #ffffff !important;
-  color: #18181B !important;
-  margin: 0 auto !important;
-  box-sizing: border-box !important;
-  padding: 18mm 20mm !important;
 }
 
 @media print {
@@ -41,9 +32,9 @@
   }
 
   #app,
-  #msg,
-  #auth-gate-overlay,
-  #crash-protection-banner {
+  #app-toast,
+  #app-modal-dialog,
+  #auth-gate-overlay {
     display: none !important;
   }
 
@@ -56,16 +47,16 @@
   }
 }
 
-/* ---------- Contenitore base & colori esatti ---------- */
-#stampa,
-#stampa * {
+/* ---------- Contenitore base documento A4 (identico in Preview & Print) ---------- */
+.doc-a4-root,
+.doc-a4-root * {
   box-sizing: border-box;
-  -webkit-print-color-adjust: exact !important;
-  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
-#stampa {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+.doc-a4-root {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   color: #18181B;
   font-size: 9px;
   line-height: 1.48;
@@ -73,8 +64,8 @@
   background: #ffffff;
 }
 
-/* ---------- Gestione fogli & impaginazione dinamica ---------- */
-#stampa .foglio-stampa {
+/* ---------- Fogli & impaginazione dinamica ---------- */
+.doc-a4-root .foglio-stampa {
   width: 100%;
   height: auto;
   min-height: 0;
@@ -83,22 +74,29 @@
   display: block;
 }
 
-/* Preventivi brevi (2-4 voci): Pagina 1 e Pagina 2 pulite senza clipping */
-#stampa .foglio-stampa.foglio-preventivo,
-#stampa .foglio-stampa.allegato-condizioni.inizia-nuova-pagina,
-#stampa .foglio-stampa.foglio-secondo {
+.doc-a4-root .foglio-stampa.foglio-preventivo,
+.doc-a4-root .foglio-stampa.allegato-condizioni.inizia-nuova-pagina,
+.doc-a4-root .foglio-stampa.foglio-secondo {
   display: flex;
   flex-direction: column;
   min-height: 254mm;
 }
 
-#stampa .foglio-stampa.inizia-nuova-pagina {
+.doc-a4-root .foglio-stampa.inizia-nuova-pagina {
   break-before: page;
   page-break-before: always;
 }
 
-/* Preventivi lunghi (flusso continuo multi-pagina senza pagine quasi vuote) */
-#stampa .allegato-condizioni.flusso-continuo {
+/* In anteprima su schermo, separa visivamente Pagina 1 e Pagina 2 */
+@media screen {
+  .a4-sheet-frame .foglio-stampa.inizia-nuova-pagina {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 2px dashed #D4D4D8;
+  }
+}
+
+.doc-a4-root .allegato-condizioni.flusso-continuo {
   margin-top: 24px;
   padding-top: 18px;
   border-top: 1px solid #E4E4E7;
@@ -106,7 +104,7 @@
   page-break-before: auto;
 }
 
-#stampa .allegato-header-inline {
+.doc-a4-root .allegato-header-inline {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -116,27 +114,27 @@
   page-break-after: avoid;
 }
 
-#stampa .allegato-header-inline .tit-inline {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .allegato-header-inline .tit-inline {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 13px;
   letter-spacing: -0.01em;
   color: #1B4332;
 }
 
-#stampa .allegato-header-inline .rif-inline {
+.doc-a4-root .allegato-header-inline .rif-inline {
   font-size: 8px;
   color: #71717A;
   white-space: nowrap;
 }
 
-#stampa .spazio-flessibile {
+.doc-a4-root .spazio-flessibile {
   flex: 1 1 auto;
   min-height: 8px;
 }
 
 /* ---------- Intestazione & Logo ---------- */
-#stampa .intestazione {
+.doc-a4-root .intestazione {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -150,33 +148,35 @@
   page-break-after: avoid;
 }
 
-#stampa .intestazione-logo {
+.doc-a4-root .intestazione-logo {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   line-height: 0;
-  overflow: visible;
 }
 
-/* Aspect ratio nativo SVG LOGO: 1322 / 279 = 4.738 */
-#stampa .intestazione-logo svg,
-#stampa .intestazione > svg {
+/* Aspect ratio nativo SVG logo: 1322 / 279 = 4.738 */
+.doc-a4-root .doc-logo-img {
   height: 40px;
-  width: 190px;
-  max-width: 190px;
+  width: auto;
+  max-width: 192px;
   display: block;
-  flex-shrink: 0;
-  overflow: visible;
+  object-fit: contain;
 }
 
-#stampa .intestazione .doc {
+.doc-a4-root .doc-logo-img.doc-logo-compact {
+  height: 30px;
+  max-width: 144px;
+}
+
+.doc-a4-root .intestazione .doc {
   flex: 1 1 auto;
   min-width: 0;
   text-align: right;
 }
 
-#stampa .intestazione .doc .tipo {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .intestazione .doc .tipo {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 23px;
   color: #1B4332;
@@ -185,7 +185,7 @@
   margin: 0;
 }
 
-#stampa .intestazione .doc .meta {
+.doc-a4-root .intestazione .doc .meta {
   font-size: 8.5px;
   color: #52525B;
   margin-top: 6px;
@@ -194,39 +194,31 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-#stampa .intestazione .doc .meta b {
+.doc-a4-root .intestazione .doc .meta b {
   color: #18181B;
   font-weight: 600;
 }
 
-/* Intestazione compatta per Pagina 2 (Allegato Contrattuale) */
-#stampa .intestazione.intestazione-compatta {
+.doc-a4-root .intestazione.intestazione-compatta {
   align-items: center;
   padding-bottom: 10px;
   margin-bottom: 16px;
 }
 
-#stampa .intestazione.intestazione-compatta .intestazione-logo svg,
-#stampa .intestazione.intestazione-compatta > svg {
-  height: 30px;
-  width: 142px;
-  max-width: 142px;
-}
-
-#stampa .intestazione.intestazione-compatta .doc .tipo {
+.doc-a4-root .intestazione.intestazione-compatta .doc .tipo {
   font-size: 13px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.2;
 }
 
-#stampa .intestazione.intestazione-compatta .doc .meta {
+.doc-a4-root .intestazione.intestazione-compatta .doc .meta {
   font-size: 8px;
   margin-top: 3px;
 }
 
-/* ---------- Griglia Cliente vs Specifiche Progetto (Zero bordi, gap 32px) ---------- */
-#stampa .blocchi {
+/* ---------- Griglia Cliente vs Specifiche Progetto ---------- */
+.doc-a4-root .blocchi {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 32px;
@@ -237,7 +229,7 @@
   page-break-inside: avoid;
 }
 
-#stampa .blocco {
+.doc-a4-root .blocco {
   min-width: 0;
   background: transparent;
   border: none;
@@ -245,8 +237,8 @@
   text-align: left;
 }
 
-#stampa .etichetta {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .etichetta {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
@@ -256,8 +248,8 @@
   text-align: left;
 }
 
-#stampa .blocco .nome {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .blocco .nome {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 13px;
   color: #18181B;
@@ -266,37 +258,36 @@
   text-align: left;
 }
 
-#stampa .blocco .righe {
+.doc-a4-root .blocco .righe {
   color: #3F3F46;
   font-size: 8.75px;
   line-height: 1.5;
   text-align: left;
 }
 
-#stampa .blocco .righe a {
+.doc-a4-root .blocco .righe a {
   color: #1B4332;
   text-decoration: none;
 }
 
-/* Specifiche progetto: etichette piccole in maiuscoletto sopra al valore */
-#stampa .spec-grid {
+.doc-a4-root .spec-grid {
   margin: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px 20px;
 }
 
-#stampa .spec-item {
+.doc-a4-root .spec-item {
   min-width: 0;
   text-align: left;
 }
 
-#stampa .spec-item.spec-full {
+.doc-a4-root .spec-item.spec-full {
   grid-column: 1 / -1;
 }
 
-#stampa .spec-item dt {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .spec-item dt {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 600;
   font-size: 8px;
   letter-spacing: 0.06em;
@@ -307,7 +298,7 @@
   text-align: left;
 }
 
-#stampa .spec-item dd {
+.doc-a4-root .spec-item dd {
   margin: 0;
   font-size: 9.5px;
   font-weight: 600;
@@ -317,7 +308,7 @@
 }
 
 /* ---------- Box Introduttivo (Avorio piatto + sola barra sinistra) ---------- */
-#stampa .intro {
+.doc-a4-root .intro {
   margin: 18px 0 22px;
   padding: 12px 16px;
   background: #F8F8F6;
@@ -332,23 +323,23 @@
   page-break-inside: avoid;
 }
 
-#stampa .intro p {
+.doc-a4-root .intro p {
   margin: 0 0 6px;
   text-align: left;
 }
 
-#stampa .intro p:last-child {
+.doc-a4-root .intro p:last-child {
   margin-bottom: 0;
 }
 
-#stampa .intro b {
+.doc-a4-root .intro b {
   color: #18181B;
   font-weight: 600;
 }
 
 /* ---------- Intestazioni di sezione ---------- */
-#stampa .sezione {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .sezione {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 8.5px;
   letter-spacing: 0.08em;
@@ -362,28 +353,28 @@
   page-break-after: avoid;
 }
 
-#stampa .allegato-condizioni .sezione:first-of-type {
+.doc-a4-root .allegato-condizioni .sezione:first-of-type {
   margin-top: 6px;
 }
 
 /* ---------- Tabella Voci di Preventivo ---------- */
-#stampa table.voci {
+.doc-a4-root table.voci {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   margin-top: 4px;
 }
 
-#stampa table.voci thead {
+.doc-a4-root table.voci thead {
   display: table-header-group;
 }
 
-#stampa table.voci tfoot {
+.doc-a4-root table.voci tfoot {
   display: table-footer-group;
 }
 
-#stampa table.voci thead th {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root table.voci thead th {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
@@ -394,18 +385,18 @@
   border-bottom: 1.5px solid #1B4332;
 }
 
-#stampa table.voci thead th.num {
+.doc-a4-root table.voci thead th.num {
   text-align: right;
   padding-left: 10px;
 }
 
-#stampa table.voci tbody tr,
-#stampa table.voci tr.voice-item {
+.doc-a4-root table.voci tbody tr,
+.doc-a4-root table.voci tr.voice-item {
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
-#stampa table.voci tbody td {
+.doc-a4-root table.voci tbody td {
   padding: 13px 0;
   border-bottom: 1px solid #E4E4E7;
   vertical-align: top;
@@ -413,7 +404,7 @@
   text-align: left;
 }
 
-#stampa table.voci tbody td.num {
+.doc-a4-root table.voci tbody td.num {
   padding: 13px 0 13px 10px;
   text-align: right;
   white-space: nowrap;
@@ -422,13 +413,13 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-#stampa table.voci tbody td.num.col-totale {
+.doc-a4-root table.voci tbody td.num.col-totale {
   font-weight: 600;
   color: #18181B;
 }
 
-#stampa .v-nome {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .v-nome {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 10.5px;
   color: #18181B;
@@ -438,7 +429,7 @@
   text-align: left;
 }
 
-#stampa .v-idx {
+.doc-a4-root .v-idx {
   color: #1B4332;
   font-weight: 600;
   font-size: 9px;
@@ -446,7 +437,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-#stampa .v-desc {
+.doc-a4-root .v-desc {
   display: block;
   color: #3F3F46;
   font-size: 8.8px;
@@ -455,8 +446,8 @@
   text-align: left;
 }
 
-/* ---------- Riepilogo Totali & Note Fiscali affiancate ---------- */
-#stampa .totali {
+/* ---------- Riepilogo Totali & Note Fiscali ---------- */
+.doc-a4-root .totali {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 238px;
   gap: 28px;
@@ -466,13 +457,13 @@
   page-break-inside: avoid;
 }
 
-#stampa .totali-note {
+.doc-a4-root .totali-note {
   text-align: left;
   padding-top: 4px;
 }
 
-#stampa .totali-note-tit {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .totali-note-tit {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 7.5px;
   letter-spacing: 0.08em;
@@ -482,7 +473,7 @@
   text-align: left;
 }
 
-#stampa .totali .nota {
+.doc-a4-root .totali .nota {
   margin: 0;
   font-size: 7.5px;
   color: #52525B;
@@ -490,11 +481,11 @@
   text-align: left;
 }
 
-#stampa .totali .box {
+.doc-a4-root .totali .box {
   width: 100%;
 }
 
-#stampa .totali .riga {
+.doc-a4-root .totali .riga {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -505,11 +496,11 @@
   border-bottom: 1px solid #E4E4E7;
 }
 
-#stampa .totali .riga.att {
+.doc-a4-root .totali .riga.att {
   color: #52525B;
 }
 
-#stampa .totali .riga .num {
+.doc-a4-root .totali .riga .num {
   font-variant-numeric: tabular-nums lining-nums;
   font-weight: 600;
   color: #18181B;
@@ -518,14 +509,14 @@
   text-align: right;
 }
 
-#stampa .totali .riga.totale {
+.doc-a4-root .totali .riga.totale {
   background: #1B4332 !important;
   color: #ffffff !important;
   border-bottom: none;
   padding: 10px 14px;
   margin-top: 8px;
   border-radius: 2px;
-  font-family: 'DM Sans', Arial, sans-serif;
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.03em;
@@ -535,18 +526,18 @@
   align-items: center;
 }
 
-#stampa .totali .riga.totale span {
+.doc-a4-root .totali .riga.totale span {
   color: #ffffff !important;
 }
 
-#stampa .totali .riga.totale .num {
+.doc-a4-root .totali .riga.totale .num {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
 }
 
-#stampa .rimando-continua {
+.doc-a4-root .rimando-continua {
   text-align: right;
   font-size: 8px;
   color: #71717A;
@@ -557,8 +548,8 @@
   page-break-inside: avoid;
 }
 
-/* ---------- Cosa Comprende (Incluso / Escluso senza box grigi) ---------- */
-#stampa .due-colonne {
+/* ---------- Cosa Comprende (Incluso / Escluso) ---------- */
+.doc-a4-root .due-colonne {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 28px;
@@ -568,7 +559,7 @@
   page-break-inside: avoid;
 }
 
-#stampa .col-card {
+.doc-a4-root .col-card {
   background: #F8F8F6;
   border: none;
   border-radius: 0;
@@ -576,13 +567,13 @@
   text-align: left;
 }
 
-#stampa .col-card.escluso {
+.doc-a4-root .col-card.escluso {
   background: transparent;
   padding: 12px 4px;
 }
 
-#stampa .etichetta-incluso {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .etichetta-incluso {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
@@ -592,8 +583,8 @@
   text-align: left;
 }
 
-#stampa .etichetta-escluso {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .etichetta-escluso {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
@@ -603,7 +594,7 @@
   text-align: left;
 }
 
-#stampa .due-colonne ul {
+.doc-a4-root .due-colonne ul {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -612,7 +603,7 @@
   text-align: left;
 }
 
-#stampa .due-colonne li {
+.doc-a4-root .due-colonne li {
   position: relative;
   padding-left: 13px;
   margin-bottom: 4.5px;
@@ -620,11 +611,11 @@
   text-align: left;
 }
 
-#stampa .due-colonne li:last-child {
+.doc-a4-root .due-colonne li:last-child {
   margin-bottom: 0;
 }
 
-#stampa .due-colonne li::before {
+.doc-a4-root .due-colonne li::before {
   content: "✓";
   position: absolute;
   left: 0;
@@ -634,18 +625,18 @@
   font-size: 8.5px;
 }
 
-#stampa .due-colonne .escluso ul {
+.doc-a4-root .due-colonne .escluso ul {
   color: #52525B;
 }
 
-#stampa .due-colonne .escluso li::before {
+.doc-a4-root .due-colonne .escluso li::before {
   content: "—";
   color: #71717A;
   font-weight: 500;
 }
 
-/* ---------- Condizioni Contrattuali (Editoriale pulito, zero boxitis) ---------- */
-#stampa .condizioni-grid {
+/* ---------- Condizioni Contrattuali ---------- */
+.doc-a4-root .condizioni-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px 28px;
@@ -653,8 +644,8 @@
   margin-bottom: 18px;
 }
 
-#stampa .cond-card,
-#stampa .clause {
+.doc-a4-root .cond-card,
+.doc-a4-root .clause {
   background: transparent;
   border: none;
   border-bottom: 1px solid #E4E4E7;
@@ -665,12 +656,12 @@
   page-break-inside: avoid;
 }
 
-#stampa .cond-card.clause-full {
+.doc-a4-root .cond-card.clause-full {
   grid-column: 1 / -1;
 }
 
-#stampa .cond-tit {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .cond-tit {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
@@ -680,16 +671,16 @@
   text-align: left;
 }
 
-#stampa .cond-txt {
+.doc-a4-root .cond-txt {
   color: #3F3F46;
   font-size: 8.6px;
   line-height: 1.48;
   text-align: left;
 }
 
-/* ---------- Area Firme & Accettazione (Unboxed, linee pulite) ---------- */
-#stampa .accettazione,
-#stampa .sign-area {
+/* ---------- Area Firme & Accettazione ---------- */
+.doc-a4-root .accettazione,
+.doc-a4-root .sign-area {
   margin-top: 20px;
   padding: 16px 0 6px;
   border: none;
@@ -701,8 +692,8 @@
   page-break-inside: avoid !important;
 }
 
-#stampa .accettazione .tit {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .accettazione .tit {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   font-size: 8.5px;
   letter-spacing: 0.08em;
@@ -712,7 +703,7 @@
   text-align: left;
 }
 
-#stampa .accettazione p {
+.doc-a4-root .accettazione p {
   margin: 0 0 22px;
   font-size: 8.5px;
   color: #52525B;
@@ -720,30 +711,30 @@
   text-align: left;
 }
 
-#stampa .accettazione a {
+.doc-a4-root .accettazione a {
   color: #1B4332;
   font-weight: 600;
   text-decoration: none;
 }
 
-#stampa .firme {
+.doc-a4-root .firme {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 36px;
 }
 
-#stampa .firme .f {
+.doc-a4-root .firme .f {
   position: relative;
   text-align: left;
 }
 
-#stampa .firme .linea {
+.doc-a4-root .firme .linea {
   border-bottom: 1px solid #A1A1AA;
   height: 36px;
   position: relative;
 }
 
-#stampa .img-firma-auto {
+.doc-a4-root .img-firma-auto {
   position: absolute;
   bottom: -4px;
   left: 6px;
@@ -755,8 +746,8 @@
   background: transparent;
 }
 
-#stampa .firme .did {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .firme .did {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 600;
   font-size: 8px;
   letter-spacing: 0.06em;
@@ -767,7 +758,7 @@
 }
 
 /* ---------- Footer ---------- */
-#stampa .pieded {
+.doc-a4-root .pieded {
   margin-top: auto;
   border-top: 1px solid #E4E4E7;
   padding-top: 10px;
@@ -779,32 +770,32 @@
   page-break-inside: avoid !important;
 }
 
-#stampa .foglio-continuo .pieded {
+.doc-a4-root .foglio-continuo .pieded {
   margin-top: 24px;
 }
 
-#stampa .pieded b {
+.doc-a4-root .pieded b {
   color: #1B4332;
-  font-family: 'DM Sans', Arial, sans-serif;
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
 }
 
-#stampa .pieded a {
+.doc-a4-root .pieded a {
   color: #3F3F46;
   text-decoration: none;
 }
 
-#stampa .pieded .footer-riga-1,
-#stampa .pieded .footer-riga-2 {
+.doc-a4-root .pieded .footer-riga-1,
+.doc-a4-root .pieded .footer-riga-2 {
   display: block;
 }
 
-#stampa .pieded .dati-fisc {
+.doc-a4-root .pieded .dati-fisc {
   white-space: nowrap;
 }
 
-/* ---------- Stili Proforma / Nota di prestazione & Listino ---------- */
-#stampa .dicitura {
+/* ---------- Proforma / Nota di prestazione & Listino ---------- */
+.doc-a4-root .dicitura {
   margin-top: 18px;
   background: #F8F8F6;
   border: none;
@@ -818,12 +809,12 @@
   page-break-inside: avoid;
 }
 
-#stampa .dicitura b {
+.doc-a4-root .dicitura b {
   color: #18181B;
   font-weight: 600;
 }
 
-#stampa .pagamento {
+.doc-a4-root .pagamento {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 28px;
@@ -836,22 +827,22 @@
   page-break-inside: avoid;
 }
 
-#stampa .pagamento .col {
+.doc-a4-root .pagamento .col {
   font-size: 8.5px;
   color: #52525B;
   line-height: 1.48;
   text-align: left;
 }
 
-#stampa .pagamento .val {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .pagamento .val {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 700;
   color: #18181B;
   font-size: 10px;
   margin: 4px 0;
 }
 
-#stampa .firma-singola {
+.doc-a4-root .firma-singola {
   display: flex;
   justify-content: flex-end;
   margin-top: 26px;
@@ -859,20 +850,20 @@
   page-break-inside: avoid;
 }
 
-#stampa .firma-singola .b {
+.doc-a4-root .firma-singola .b {
   width: 210px;
   text-align: left;
   position: relative;
 }
 
-#stampa .firma-singola .linea {
+.doc-a4-root .firma-singola .linea {
   border-bottom: 1px solid #A1A1AA;
   height: 36px;
   position: relative;
 }
 
-#stampa .firma-singola .did {
-  font-family: 'DM Sans', Arial, sans-serif;
+.doc-a4-root .firma-singola .did {
+  font-family: "DM Sans", Arial, sans-serif;
   font-weight: 600;
   font-size: 8px;
   letter-spacing: 0.06em;

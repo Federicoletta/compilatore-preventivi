@@ -1,0 +1,99 @@
+/* ==========================================================================
+   DESIGN TOKENS v2.0 — Light & Dark Theme (60-30-10 Calm Neutrals + #1B4332)
+   Zero hack !important: ogni superficie e bordo risponde ai token semantici.
+   ========================================================================== */
+
+:root {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "DM Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* 60% Neutral Canvas */
+  --bg-canvas: #F5F6F5;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F8F9F8;
+  --bg-hover: #EFEFEF;
+  --bg-input: #FFFFFF;
+
+  /* 30% Structure & Typography */
+  --border-subtle: #E4E4E7;
+  --border-strong: #D4D4D8;
+  --text-primary: #18181B;
+  --text-secondary: #52525B;
+  --text-muted: #71717A;
+
+  /* 10% Brand Accent — Forest Green Istituzionale */
+  --brand: #1B4332;
+  --brand-hover: #143326;
+  --brand-soft: #EBF3EF;
+  --brand-text-on: #FFFFFF;
+
+  /* Topbar istituzionale */
+  --topbar-bg: #1B4332;
+  --topbar-text: #FFFFFF;
+  --topbar-muted: rgba(255, 255, 255, 0.72);
+  --topbar-hover: rgba(255, 255, 255, 0.12);
+  --topbar-active: rgba(255, 255, 255, 0.2);
+
+  /* Semantic Status */
+  --status-ok: #15803D;
+  --status-ok-bg: #DCFCE7;
+  --status-warn: #B45309;
+  --status-warn-bg: #FEF3C7;
+  --status-info: #0369A1;
+  --status-info-bg: #E0F2FE;
+  --status-danger: #B91C1C;
+  --status-danger-bg: #FEE2E2;
+  --status-neutral: #52525B;
+  --status-neutral-bg: #F4F4F5;
+
+  /* Elevation & Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.05);
+  --shadow-md: 0 8px 24px rgba(24, 24, 27, 0.08);
+  --shadow-lg: 0 20px 44px rgba(24, 24, 27, 0.16);
+
+  --topbar-height: 58px;
+}
+
+[data-theme="dark"] {
+  --bg-canvas: #0E1311;
+  --bg-surface: #151C19;
+  --bg-subtle: #1B2420;
+  --bg-hover: #222D28;
+  --bg-input: #101614;
+
+  --border-subtle: #26332D;
+  --border-strong: #35473E;
+  --text-primary: #F4F5F4;
+  --text-secondary: #B4BEB8;
+  --text-muted: #84918A;
+
+  --brand: #2D6A4F;
+  --brand-hover: #3B8263;
+  --brand-soft: rgba(45, 106, 79, 0.22);
+  --brand-text-on: #FFFFFF;
+
+  --topbar-bg: #101A15;
+  --topbar-text: #F4F5F4;
+  --topbar-muted: rgba(244, 245, 244, 0.68);
+  --topbar-hover: rgba(255, 255, 255, 0.09);
+  --topbar-active: rgba(45, 106, 79, 0.42);
+
+  --status-ok: #4ADE80;
+  --status-ok-bg: rgba(34, 197, 94, 0.16);
+  --status-warn: #FBBF24;
+  --status-warn-bg: rgba(245, 158, 11, 0.16);
+  --status-info: #38BDF8;
+  --status-info-bg: rgba(14, 165, 233, 0.16);
+  --status-danger: #F87171;
+  --status-danger-bg: rgba(239, 68, 68, 0.16);
+  --status-neutral: #A1A1AA;
+  --status-neutral-bg: rgba(161, 161, 170, 0.14);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 20px 44px rgba(0, 0, 0, 0.6);
+}

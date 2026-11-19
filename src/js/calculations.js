@@ -1,208 +1,189 @@
-/* ================== calcolo e regimi fiscali ================== */
-(function(window){
-  "use strict";
+/**
+ * Motore fiscale e di calcolo 100% puro (zero dipendenze DOM).
+ * Unica fonte di verità condivisa tra Editor, Anteprima A4, Stampa, Archivio e CRM Clienti.
+ */
 
-  const calc = {
-    regimeAttivo(){
-      return (window.val ? window.val("regime") : "") || "occasionale";
-    },
+export const SOGLIA_BOLLO = 77.47;
+export const IMPORTO_BOLLO = 2;
+export const REGIMI_PIVA = new Set(["forf5", "forf15", "ordinario"]);
+export const REGIMI_BOLLO = new Set(["forf5", "forf15", "occasionale"]);
 
-    conPartitaIva(){
-      return ["forf5", "forf15", "ordinario"].includes(calc.regimeAttivo());
-    },
+export function round2(val) {
+  const num = Number(val);
+  if (!Number.isFinite(num)) return 0;
+  return Math.round((num + Number.EPSILON) * 100) / 100;
+}
 
-    totali(){
-      const r = calc.regimeAttivo();
-      const voci = typeof window.leggiVoci === "function" ? window.leggiVoci() : [];
-      const imponibile = voci.reduce((s, v) => s + (v.q * v.p), 0);
-      const sconto = parseFloat(window.val ? window.val("sconto") : 0) || 0;
-      const base = Math.max(0, imponibile - sconto);
+/**
+ * Calcola tutti gli importi fiscali del preventivo da un oggetto puro.
+ * Supporta sconto in Euro ('euro') oppure percentuale ('perc').
+ */
+export function calcolaTotali(quote = {}) {
+  const q = quote && typeof quote === "object" ? quote : {};
+  const voci = Array.isArray(q.voci) ? q.voci : [];
 
-      const rivPerc = calc.conPartitaIva() ? (parseFloat(window.val ? window.val("rivalsa") : 0) || 0) : 0;
-      const rivalsa = base * rivPerc / 100;
-      const imponibileIva = base + rivalsa;
+  const imponibile = round2(
+    voci.reduce((sum, v) => {
+      const qty = Math.max(0, Number(v?.q) || 0);
+      const price = Math.max(0, Number(v?.p) || 0);
+      return sum + qty * price;
+    }, 0)
+  );
 
-      const ivaPerc = (r === "ordinario") ? (parseFloat(window.val ? window.val("iva") : 0) || 0) : 0;
-      const iva = imponibileIva * ivaPerc / 100;
+  const scontoTipo =
+    q.scontoTipo === "perc" || q.progetto?.scontoTipo === "perc" ? "perc" : "euro";
 
-      const applicaBolloRegime = (r === "forf5" || r === "forf15" || r === "occasionale");
-      const bolloDovuto = applicaBolloRegime && (window.val ? window.val("bollo") : "") !== "no" && imponibileIva > 77.47;
-      const bollo = bolloDovuto ? 2 : 0;
+  const rawScontoValore =
+    q.scontoValore !== undefined && q.scontoValore !== null
+      ? Number(q.scontoValore)
+      : q.progetto?.scontoValore !== undefined && q.progetto?.scontoValore !== null
+        ? Number(q.progetto.scontoValore)
+        : Number(q.sconto);
 
-      let ritPerc = 0;
-      if(r === "occasionale" || r === "ordinario"){
-        ritPerc = parseFloat(window.val ? window.val("ritenuta") : 0) || 0;
-      }
-      const baseRitenuta = (rivPerc === 2) ? base : base + rivalsa;
-      const ritenuta = baseRitenuta * ritPerc / 100;
+  const scontoValore = Number.isFinite(rawScontoValore) ? Math.max(0, rawScontoValore) : 0;
 
-      const totaleDoc = imponibileIva + iva + bollo;
-      return {
-        imponibile, sconto, base, rivPerc, rivalsa, imponibileIva, ivaPerc, iva,
-        bollo, ritPerc, ritenuta, totaleDoc, netto: totaleDoc - ritenuta, regime: r
-      };
-    },
-
-    totaliPreventivo(p){
-      if(!p) return calc.totali();
-      const r = p.regime || "occasionale";
-      const pIva = ["forf5", "forf15", "ordinario"].includes(r);
-      const voci = Array.isArray(p.voci) ? p.voci : [];
-      const imponibile = voci.reduce((s, v) => s + ((parseFloat(v.q) || 0) * (parseFloat(v.p) || 0)), 0);
-      const sconto = parseFloat(p.sconto) || 0;
-      const base = Math.max(0, imponibile - sconto);
-      const rivPerc = pIva ? (parseFloat(p.rivalsa) || 0) : 0;
-      const rivalsa = base * rivPerc / 100;
-      const imponibileIva = base + rivalsa;
-      const ivaPerc = (r === "ordinario") ? (parseFloat(p.iva) || 0) : 0;
-      const iva = imponibileIva * ivaPerc / 100;
-      const applicaBolloRegime = (r === "forf5" || r === "forf15" || r === "occasionale");
-      const bolloDovuto = applicaBolloRegime && p.bollo !== "no" && imponibileIva > 77.47;
-      const bollo = bolloDovuto ? 2 : 0;
-      let ritPerc = 0;
-      if(r === "occasionale" || r === "ordinario"){
-        ritPerc = parseFloat(p.ritenuta) || 0;
-      }
-      const baseRitenuta = (rivPerc === 2) ? base : base + rivalsa;
-      const ritenuta = baseRitenuta * ritPerc / 100;
-      const totaleDoc = imponibileIva + iva + bollo;
-      return {
-        imponibile, sconto, base, rivPerc, rivalsa, imponibileIva, ivaPerc, iva,
-        bollo, ritPerc, ritenuta, totaleDoc, netto: totaleDoc - ritenuta, regime: r
-      };
-    },
-
-    cambiaRegime(){
-      const r = calc.regimeAttivo();
-      const mostra = (id, v) => {
-        const e = document.getElementById(id);
-        if(e) e.style.display = v ? "flex" : "none";
-      };
-
-      mostra("c-ritenuta", r === "occasionale" || r === "ordinario");
-      mostra("c-rivalsa", calc.conPartitaIva());
-      mostra("c-iva", r === "ordinario");
-      mostra("c-bollo", r === "forf5" || r === "forf15" || r === "occasionale");
-
-      const note = {
-        occasionale: "Compenso soggetto a ritenuta del 20% versata dal committente. Fuori campo IVA. Marca da bollo € 2,00 se superiore a € 77,47. Oltre € 5.000 lordi/anno scatta l'iscrizione alla Gestione Separata INPS.",
-        forf5: "Nessuna IVA e nessuna ritenuta d'acconto. Aliquota agevolata al 5% per i primi cinque anni di attività. Bollo da € 2,00 sui documenti oltre € 77,47.",
-        forf15: "Nessuna IVA e nessuna ritenuta d'acconto. Imposta sostitutiva al 15%. Bollo da € 2,00 sui documenti oltre € 77,47.",
-        ordinario: "IVA in fattura e ritenuta del 20% quando il committente è sostituto d'imposta (imprese, professionisti, enti). Verso privati la ritenuta non si applica: metti No.",
-        nessuno: "Nessuna imposta calcolata: il totale coincide con l'imponibile. Utile per bozze e stime interne."
-      };
-      const nEl = document.getElementById("nota-regime");
-      if(nEl) nEl.textContent = note[r] || "";
-
-      calc.calcola();
-    },
-
-    aggiornaPannelloTotali(prefisso, t, scontoTxt){
-      const setTxt = (suf, val) => {
-        const el = document.getElementById(prefisso + suf);
-        if(el) el.textContent = val;
-      };
-      const setVis = (suf, vis) => {
-        const el = document.getElementById(prefisso + suf);
-        if(el) el.style.display = vis ? "flex" : "none";
-      };
-
-      setTxt("t-imp", window.euro(t.imponibile));
-      setTxt("t-sconto", "− " + window.euro(t.sconto));
-      setTxt("t-sconto-txt", scontoTxt || "Sconto");
-      setVis("r-sconto", t.sconto > 0);
-
-      const labelRiv = (t.rivPerc === 2 ? "Contributo cassa " : "Rivalsa INPS ") + t.rivPerc + "%";
-      setTxt("t-riv-txt", labelRiv);
-      setTxt("t-riv", window.euro(t.rivalsa));
-      setVis("r-riv", t.rivPerc > 0);
-
-      setTxt("t-iva-txt", "IVA " + t.ivaPerc + "%");
-      setTxt("t-iva", window.euro(t.iva));
-      setVis("r-iva", t.ivaPerc > 0);
-      setVis("r-bollo", t.bollo > 0);
-
-      setTxt("t-rit-txt", "Ritenuta d'acconto " + t.ritPerc + "%");
-      setTxt("t-rit", "− " + window.euro(t.ritenuta));
-      setVis("r-rit", t.ritenuta > 0);
-
-      if(document.getElementById(prefisso + "t-doc")){
-        setTxt("t-doc", window.euro(t.totaleDoc));
-        setVis("r-doc", t.rivalsa > 0 || t.iva > 0 || t.bollo > 0);
-      }
-      setTxt("t-netto", window.euro(t.netto));
-    },
-
-    calcola(){
-      // Calcolo righe voci
-      document.querySelectorAll("#corpo-voci tr").forEach(tr => {
-        const inputs = tr.querySelectorAll("input");
-        if(inputs.length >= 3){
-          const qta = parseFloat(inputs[1].value) || 0;
-          const pr = parseFloat(inputs[2].value) || 0;
-          const cella = tr.querySelector(".tot-cella");
-          if(cella) cella.textContent = window.euro(qta * pr);
-        }
-      });
-
-      const t = calc.totali();
-      const scontoTxt = window.val ? window.val("sconto_txt") : "";
-
-      // 1. Box totali in fondo all'editor
-      calc.aggiornaPannelloTotali("", t, scontoTxt);
-
-      // 2. Box totali nella sidebar live
-      calc.aggiornaPannelloTotali("sb-", t, scontoTxt);
-
-      // 2b. Box totale nella barra mobile rapida
-      const mobNetto = document.getElementById("mob-t-netto");
-      if(mobNetto) mobNetto.textContent = window.euro(t.netto);
-
-      // 3. Etichetta del secondo pulsante (Proforma vs Nota)
-      const labelSecondo = calc.conPartitaIva() ? "Proforma" : "Nota di prestazione";
-      const bSec = document.getElementById("btn-secondo");
-      if(bSec) bSec.textContent = labelSecondo;
-
-      // 4. Stima dinamica pagine A4
-      const vociCorrente = typeof window.leggiVoci === "function" ? window.leggiVoci() : [];
-      const totVoci = vociCorrente.length || document.querySelectorAll("#corpo-voci tr").length;
-      const badgeStima = document.getElementById("badge-stima-pagine");
-      if(badgeStima){
-        const stima = typeof window.stimaIngombroStampa === "function"
-          ? window.stimaIngombroStampa({
-              voci: vociCorrente,
-              progetto: { intro: window.val ? window.val("pr_intro") : "" }
-            })
-          : { pagina1Compatta: totVoci <= 4, ingombroP1: totVoci * 3 };
-
-        if(stima.pagina1Compatta){
-          badgeStima.innerHTML = "📄 Stima: <b>2 Pagine A4</b>";
-          badgeStima.className = "badge-stima-pagine p2";
-          badgeStima.title = "Preventivo compatto: Pagina 1 con voci e totali, Allegato Contrattuale pulito a Pagina 2.";
-        } else if(stima.ingombroP1 <= 30){
-          badgeStima.innerHTML = "📄 Stima: <b>2–3 Pagine A4</b>";
-          badgeStima.className = "badge-stima-pagine p3";
-          badgeStima.title = "Flusso multi-pagina continuo: intestazione tabella ripetuta automaticamente e allegato senza pagine vuote.";
-        } else {
-          badgeStima.innerHTML = "📄 Stima: <b>3+ Pagine A4</b>";
-          badgeStima.className = "badge-stima-pagine p3";
-          badgeStima.title = "Preventivo esteso: paginazione dinamica multi-foglio con protezione righe, clausole e firme.";
-        }
-      }
-    }
-  };
-
-  // Registrazione nel namespace centrale App
-  if(window.App){
-    window.App.calc = calc;
+  let scontoLordo = 0;
+  if (scontoTipo === "perc") {
+    const perc = Math.min(100, Math.max(0, scontoValore));
+    scontoLordo = round2((imponibile * perc) / 100);
+  } else {
+    scontoLordo = round2(scontoValore);
   }
 
-  // Global Facade
-  window.regimeAttivo = calc.regimeAttivo;
-  window.conPartitaIva = calc.conPartitaIva;
-  window.totali = calc.totali;
-  window.totaliPreventivo = calc.totaliPreventivo;
-  window.cambiaRegime = calc.cambiaRegime;
-  window.calcola = calc.calcola;
+  const sconto = round2(Math.min(imponibile, scontoLordo));
+  const base = round2(Math.max(0, imponibile - sconto));
 
-})(window);
+  const regime = String(q.regime || "occasionale");
+  const haPartitaIva = REGIMI_PIVA.has(regime);
+
+  const rivPerc = haPartitaIva ? Math.min(100, Math.max(0, Number(q.rivalsa) || 0)) : 0;
+  const rivalsa = round2((base * rivPerc) / 100);
+  const imponibileIva = round2(base + rivalsa);
+
+  const ivaPerc = regime === "ordinario" ? Math.min(100, Math.max(0, Number(q.iva) || 0)) : 0;
+  const iva = round2((imponibileIva * ivaPerc) / 100);
+
+  const bolloFlag = String(q.bollo || "auto");
+  const bollo =
+    REGIMI_BOLLO.has(regime) && bolloFlag !== "no" && imponibileIva > SOGLIA_BOLLO
+      ? IMPORTO_BOLLO
+      : 0;
+
+  const ritAttiva = regime === "occasionale" || regime === "ordinario";
+  const ritPerc = ritAttiva ? Math.min(100, Math.max(0, Number(q.ritenuta) || 0)) : 0;
+  // La cassa integrativa 2% non è soggetta a ritenuta; la rivalsa INPS 4% sì.
+  const baseRitenuta = rivPerc === 2 ? base : round2(base + rivalsa);
+  const ritenuta = round2((baseRitenuta * ritPerc) / 100);
+
+  const totaleDoc = round2(imponibileIva + iva + bollo);
+  const netto = round2(totaleDoc - ritenuta);
+
+  return {
+    regime,
+    haPartitaIva,
+    imponibile,
+    scontoTipo,
+    scontoValore,
+    scontoLordo,
+    sconto,
+    base,
+    rivPerc,
+    rivalsa,
+    imponibileIva,
+    ivaPerc,
+    iva,
+    bollo,
+    ritPerc,
+    ritenuta,
+    totaleDoc,
+    netto,
+  };
+}
+
+/**
+ * Helper rapido per KPI Archivio / Clienti (totale netto coerente col motore fiscale).
+ */
+export function calcolaTotalePreventivo(quote) {
+  return calcolaTotali(quote).netto;
+}
+
+/**
+ * Dicitura fiscale legale completa per Preventivo e Proforma / Nota di prestazione.
+ */
+export function dicituraFiscale(t) {
+  if (!t || t.regime === "nessuno") return "";
+  const parti = [];
+  if (t.regime === "occasionale") {
+    parti.push(
+      "Prestazione occasionale ai sensi dell'art. 67, comma 1, lett. l) del D.P.R. 917/1986, priva del carattere di abitualità."
+    );
+    if (t.ritPerc > 0) {
+      parti.push(
+        `Compenso soggetto a ritenuta d'acconto del ${t.ritPerc}% ai sensi dell'art. 25 del D.P.R. 600/1973, versata dal committente in qualità di sostituto d'imposta.`
+      );
+    }
+    parti.push("Operazione fuori campo IVA ai sensi dell'art. 5 del D.P.R. 633/1972.");
+    if (t.bollo > 0) {
+      parti.push(
+        "Imposta di bollo di € 2,00 assolta sull'originale per importi superiori a € 77,47, a carico del committente."
+      );
+    }
+  } else if (t.regime === "forf5" || t.regime === "forf15") {
+    parti.push(
+      "Operazione effettuata ai sensi dell'art. 1, commi da 54 a 89, della Legge 190/2014 e successive modificazioni — regime forfettario. Imposta non applicata."
+    );
+    parti.push(
+      "Si richiede la non applicazione della ritenuta d'acconto ai sensi dell'art. 1, comma 67, della Legge 190/2014."
+    );
+    if (t.bollo > 0) {
+      parti.push(
+        "Imposta di bollo di € 2,00 assolta sull'originale per importi superiori a € 77,47, a carico del committente."
+      );
+    }
+  } else if (t.regime === "ordinario") {
+    if (t.ivaPerc > 0) {
+      parti.push(`Operazione soggetta a IVA con aliquota del ${t.ivaPerc}%.`);
+    } else {
+      parti.push("Operazione non imponibile o esente ai fini IVA.");
+    }
+    if (t.ritPerc > 0) {
+      parti.push(
+        `Compenso soggetto a ritenuta d'acconto del ${t.ritPerc}% a titolo di acconto IRPEF ai sensi dell'art. 25 del D.P.R. 600/1973, operata dal committente in qualità di sostituto d'imposta.`
+      );
+    }
+  }
+
+  if (t.rivPerc === 4) {
+    parti.push(
+      "Rivalsa INPS Gestione Separata del 4% ai sensi dell'art. 1, comma 212, della Legge 662/1996."
+    );
+  } else if (t.rivPerc === 2) {
+    parti.push("Contributo integrativo di cassa del 2%, non soggetto a ritenuta d'acconto.");
+  }
+
+  return parti.join(" ");
+}
+
+/**
+ * Stima ingombro stampa A4 per decidere tra layout 2 pagine pulite (brevi)
+ * e flusso continuo multi-pagina intelligente (articolati, 5+ voci o descrizioni estese).
+ */
+export function stimaIngombroStampa(quote) {
+  const voci = Array.isArray(quote?.voci) ? quote.voci : [];
+  let righeVoci = 0;
+  for (const v of voci) {
+    const descLen = String(v?.desc || "").trim().length;
+    const righeDesc = descLen > 0 ? Math.ceil(descLen / 72) : 0;
+    righeVoci += 1.9 + righeDesc;
+  }
+  const introLen = String(quote?.progetto?.intro || "").trim().length;
+  const extraIntro = introLen > 240 ? Math.ceil((introLen - 240) / 105) : 0;
+  const ingombroP1 = righeVoci + extraIntro;
+  const pagina1Compatta = voci.length <= 4 && ingombroP1 <= 16;
+
+  return {
+    totVoci: voci.length,
+    ingombroP1,
+    pagina1Compatta,
+  };
+}
