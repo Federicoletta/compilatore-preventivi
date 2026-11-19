@@ -129,6 +129,9 @@
 
   .a4-sheet-frame .doc-section-annex.force-page-break {
     margin-top: 24px;
+  }
+
+  .a4-sheet-frame table.print-shell.doc-section-annex.force-page-break > thead > tr > th.annex-shell-head {
     padding-top: 22px;
     border-top: 2px dashed #D9D6CF;
   }
@@ -153,12 +156,17 @@
 
 /* ---------- Print Shell (Table Spacer per riservare il footer su ogni foglio) ---------- */
 .doc-a4-root table.print-shell {
+  display: table;
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
   table-layout: fixed;
   border: none;
   margin: 0;
+}
+
+.doc-a4-root table.print-shell > thead {
+  display: table-header-group;
 }
 
 .doc-a4-root table.print-shell,
@@ -169,17 +177,18 @@
   page-break-inside: auto !important;
 }
 
+.doc-a4-root table.print-shell > thead > tr > th.annex-shell-head,
 .doc-a4-root table.print-shell > tbody > tr > td.print-shell-body,
 .doc-a4-root table.print-shell > tfoot > tr > td.print-shell-foot {
   padding: 0;
   border: none;
   background: transparent;
+  font-weight: inherit;
+  text-align: inherit;
   vertical-align: top;
 }
 
 /* ---------- Sezioni Logiche & Salto Pagina Intelligente ---------- */
-.doc-a4-root .doc-section-quote,
-.doc-a4-root .doc-section-annex,
 .doc-a4-root .doc-section-second,
 .doc-a4-root .doc-section-pricelist {
   display: block;
@@ -193,10 +202,13 @@
 
 .doc-a4-root .doc-section-annex.flow-annex {
   margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid #D9D6CF;
   break-before: auto;
   page-break-before: auto;
+}
+
+.doc-a4-root table.print-shell.doc-section-annex.flow-annex > tbody > tr.annex-row-main > td.print-shell-body {
+  padding-top: 14px;
+  border-top: 1px solid #D9D6CF;
 }
 
 /* Toggle automatico tra header da nuova pagina (con logo) e header inline (flusso continuo) */
@@ -206,38 +218,6 @@
 
 .doc-a4-root .doc-section-annex.flow-annex .annex-header-page {
   display: none;
-}
-
-/* ---------- Annex Shell (thead ripetuto automaticamente anche su Pagina 3) ---------- */
-.doc-a4-root table.annex-shell {
-  width: 100%;
-  border-collapse: collapse;
-  border-spacing: 0;
-  table-layout: fixed;
-  border: none;
-  margin: 0;
-}
-
-.doc-a4-root table.annex-shell > thead {
-  display: table-header-group;
-}
-
-.doc-a4-root table.annex-shell,
-.doc-a4-root table.annex-shell > tbody,
-.doc-a4-root table.annex-shell > tbody > tr,
-.doc-a4-root table.annex-shell > tbody > tr > td {
-  break-inside: auto !important;
-  page-break-inside: auto !important;
-}
-
-.doc-a4-root table.annex-shell > thead > tr > th.annex-shell-head,
-.doc-a4-root table.annex-shell > tbody > tr > td.annex-shell-body {
-  padding: 0;
-  border: none;
-  background: transparent;
-  font-weight: inherit;
-  text-align: inherit;
-  vertical-align: top;
 }
 
 .doc-a4-root .doc-section-conditions {

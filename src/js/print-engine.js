@@ -316,55 +316,73 @@ export function renderQuoteDocumentHtml(quote, { showSignature = true, totals = 
   const stima = stimaIngombroStampa(p);
   const initialAnnexMode = stima.pagina1Compatta ? "force-page-break" : "flow-annex";
 
-  const bodyHtml = `
-    <div class="doc-section-quote">
-      ${headerPrincipale}
-      ${blocchiClienteProgetto}
-      ${introHtml}
-      <div class="sezione">Voci di preventivo</div>
-      ${tabellaVoci}
-      ${renderTotalsBlock(t, { scontoTxt: p.sconto_txt })}
-      <div class="rimando-continua"${initialAnnexMode === "flow-annex" ? " hidden" : ""}>Segue allegato contrattuale, condizioni e firme nella pagina seguente →</div>
-    </div>
+  return `<div class="doc-a4-root">
+    <table class="print-shell doc-section-quote" role="presentation">
+      <tbody>
+        <tr>
+          <td class="print-shell-body">
+            ${headerPrincipale}
+            ${blocchiClienteProgetto}
+            ${introHtml}
+            <div class="sezione">Voci di preventivo</div>
+            ${tabellaVoci}
+            ${renderTotalsBlock(t, { scontoTxt: p.sconto_txt })}
+            <div class="rimando-continua"${initialAnnexMode === "flow-annex" ? " hidden" : ""}>Segue allegato contrattuale, condizioni e firme nella pagina seguente →</div>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="print-shell-foot">
+            <div class="print-footer-spacer" aria-hidden="true"></div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
 
-    <div class="doc-section-annex allegato-condizioni ${initialAnnexMode}">
-      <table class="annex-shell" role="presentation">
-        <thead class="annex-header-page">
-          <tr>
-            <th class="annex-shell-head">
-              <header class="intestazione intestazione-compatta">
-                <div class="intestazione-logo">${renderLogoImg(true)}</div>
-                <div class="doc">
-                  <div class="tipo">Allegato Contrattuale &amp; Condizioni</div>
-                  <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div>
-                </div>
-              </header>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="annex-row-main">
-            <td class="annex-shell-body">
-              <div class="allegato-header-inline annex-header-flow">
-                <div class="tit-inline">Allegato Contrattuale &amp; Condizioni</div>
-                <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>
+    <table class="print-shell doc-section-annex allegato-condizioni ${initialAnnexMode}" role="presentation">
+      <thead class="annex-header-page">
+        <tr>
+          <th class="annex-shell-head">
+            <header class="intestazione intestazione-compatta">
+              <div class="intestazione-logo">${renderLogoImg(true)}</div>
+              <div class="doc">
+                <div class="tipo">Allegato Contrattuale &amp; Condizioni</div>
+                <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div>
               </div>
-              ${comprendeHtml}
-              ${opzHtml}
-            </td>
-          </tr>
-          <tr class="annex-row-conditions">
-            <td class="annex-shell-body">
-              ${condHtml}
-              ${bloccoAccettazione}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  `;
+            </header>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="annex-row-main">
+          <td class="print-shell-body">
+            <div class="allegato-header-inline annex-header-flow">
+              <div class="tit-inline">Allegato Contrattuale &amp; Condizioni</div>
+              <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>
+            </div>
+            ${comprendeHtml}
+            ${opzHtml}
+          </td>
+        </tr>
+        <tr class="annex-row-conditions">
+          <td class="print-shell-body">
+            ${condHtml}
+            ${bloccoAccettazione}
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="print-shell-foot">
+            <div class="print-footer-spacer" aria-hidden="true"></div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
 
-  return wrapInPrintShell(bodyHtml, renderFooterHtml(p));
+    ${renderFooterHtml(p)}
+  </div>`;
 }
 
 /**
