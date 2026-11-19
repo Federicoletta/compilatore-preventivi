@@ -344,6 +344,69 @@ console.log('\n8. Test Serializzazione Firestore & Sincronizzazione Import JSON:
     assert(!!listDoc && !('extraNonValido' in listDoc.data), 'Voce listino sanificata nella collezione /listino');
     assert(deletedIds.includes('vecchio_id_sostituito'), 'Vecchio documento rimpiazzato per numero eliminato dal cloud');
 
+    // 9. Test Layout Editoriale PDF & Impaginazione Dinamica (2 vs 10+ voci)
+    console.log('\n9. Test Layout Editoriale PDF & Impaginazione Dinamica:');
+    {
+      const printCss = fs.readFileSync(path.join(ROOT_DIR, 'src', 'css', 'print.css'), 'utf-8');
+      assert(printCss.includes('margin: 18mm 20mm'), 'Margini A4 generosi 18mm 20mm impostati in @page');
+      assert(printCss.includes('#1B4332'), 'Colore istituzionale verde bosco #1B4332 presente');
+      assert(printCss.includes('#18181B'), 'Testo principale nero carbone #18181B presente');
+      assert(printCss.includes('display: table-header-group'), 'thead ripetuto su multi-pagina tramite table-header-group');
+      assert(printCss.includes('.voice-item') && printCss.includes('.clause') && printCss.includes('.sign-area'), 'Classi break-inside: avoid per voci, clausole e firme configurate');
+      assert(!/text-align\s*:\s*justify/i.test(printCss), 'Nessun text-align: justify presente nel CSS di stampa');
+
+      globalThis.euro = (n) => '€ ' + Number(n || 0).toFixed(2).replace('.', ',');
+      globalThis.dataIt = (d) => d || '';
+      globalThis.maiuscola = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+      globalThis.usaFirmaAutografa = () => true;
+      globalThis.aIsoLocale = () => '2026-11-18';
+
+      const basePrev = {
+        id: 'p_test_pdf',
+        numero: 'FC_2026_99',
+        data: '2026-11-18',
+        validita: '2026-12-18',
+        regime: 'forf5',
+        sconto: 0,
+        sconto_txt: '',
+        cliente: { nome: 'Casa Produzione Roma S.r.l.', ref: 'Marco Rossi', indirizzo: 'Via Roma 1', piva: 'P.IVA 12345678901', email: 'marco@test.it', tel: '06 123456' },
+        progetto: { titolo: 'Documentario Cinema', tipo: 'Docufilm', luogo: 'Roma', giornate: '3 giornate', consegna: 'Dicembre 2026', saluto: 'Gentile Marco,', intro: 'proposta per la produzione esecutiva.' },
+        incluso: ['Camera cinema 6K', 'Luci LED'],
+        escluso: ['Permessi suolo pubblico'],
+        opzioni: [{ nome: 'Drone FPV', desc: 'Pilota certificato', p: 450 }],
+        condizioni: [['Validità', '30 giorni'], ['Pagamento', '30% acconto']],
+        io: { piva: '01234567890', cf: 'CLTFRC90A01H501U', iban: 'IT00X0000000000000000000000' }
+      };
+      const totMock = { imponibile: 2000, sconto: 0, base: 2000, rivPerc: 4, rivalsa: 80, imponibileIva: 2080, ivaPerc: 0, iva: 0, bollo: 2, ritPerc: 0, ritenuta: 0, totaleDoc: 2082, netto: 2082, regime: 'forf5' };
+
+      const prevCorto = Object.assign({}, basePrev, {
+        voci: [
+          { nome: 'Pre-produzione', desc: 'Sopralluogo e piano luci.', q: 1, p: 500 },
+          { nome: 'Direzione Fotografia', desc: 'Riprese 6K su set.', q: 2, p: 750 }
+        ]
+      });
+      const htmlCorto = globalThis.generaHtmlPaginePreventivo(prevCorto, totMock);
+      assert(htmlCorto.includes('inizia-nuova-pagina'), 'Preventivo breve (2 voci): Allegato inizia pulito a Pagina 2');
+      assert(htmlCorto.includes('totali-note'), 'Note fiscali posizionate nella colonna sinistra accanto ai totali');
+      assert(htmlCorto.includes('width:62%') && htmlCorto.includes('width:10%'), 'Tabella voci con 62% descrizione e colonne numeriche compatte');
+      assert(!htmlCorto.includes('Federico Coletta · Federico Coletta'), 'Nessuna duplicazione del nome Federico Coletta sotto la firma');
+
+      const vociLunghe = Array.from({ length: 10 }, (_, idx) => ({
+        nome: `Voce Produzione ${idx + 1}`,
+        desc: 'Descrizione tecnica estesa per verifica impaginazione multi-pagina senza tagli né pagine quasi vuote.',
+        q: 1,
+        p: 200
+      }));
+      const prevLungo = Object.assign({}, basePrev, { voci: vociLunghe });
+      const htmlLungo = globalThis.generaHtmlPaginePreventivo(prevLungo, totMock);
+      assert(htmlLungo.includes('foglio-continuo') && htmlLungo.includes('flusso-continuo'), 'Preventivo articolato (10 voci): flusso continuo multi-pagina senza salto forzato');
+      assert((htmlLungo.match(/class="voice-item"/g) || []).length === 11, 'Tutte le 10 voci + 1 opzione renderizzate con classe voice-item in tabella continua');
+      assert(!htmlLungo.includes('Voci di preventivo (2/2)'), 'Nessuna spezzatura rigida manuale della tabella voci');
+
+      const htmlSecondo = globalThis.generaHtmlSecondoDocumento(prevCorto, totMock);
+      assert(!htmlSecondo.includes('Federico Coletta · Federico Coletta'), 'Nessuna duplicazione del nome nella firma di Proforma/Nota');
+    }
+
     console.log('\n----------------------------------------------------');
     console.log(`RISULTATO TEST: ${passedTests}/${totalTests} superati.`);
     if (failedTests > 0) {

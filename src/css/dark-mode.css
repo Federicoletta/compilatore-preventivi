@@ -236,7 +236,7 @@ html[data-tema="dark"] ::-webkit-scrollbar-thumb:hover{
   html[data-tema="dark"],
   html[data-tema="dark"] body{
     background:#fff !important;
-    color:#1A1A1A !important;
+    color:#18181B !important;
   }
 }
 

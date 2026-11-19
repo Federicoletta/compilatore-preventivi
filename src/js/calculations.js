@@ -164,17 +164,29 @@
       if(bSec) bSec.textContent = labelSecondo;
 
       // 4. Stima dinamica pagine A4
-      const totVoci = document.querySelectorAll("#corpo-voci tr").length;
+      const vociCorrente = typeof window.leggiVoci === "function" ? window.leggiVoci() : [];
+      const totVoci = vociCorrente.length || document.querySelectorAll("#corpo-voci tr").length;
       const badgeStima = document.getElementById("badge-stima-pagine");
       if(badgeStima){
-        if(totVoci <= 5){
+        const stima = typeof window.stimaIngombroStampa === "function"
+          ? window.stimaIngombroStampa({
+              voci: vociCorrente,
+              progetto: { intro: window.val ? window.val("pr_intro") : "" }
+            })
+          : { pagina1Compatta: totVoci <= 4, ingombroP1: totVoci * 3 };
+
+        if(stima.pagina1Compatta){
           badgeStima.innerHTML = "📄 Stima: <b>2 Pagine A4</b>";
           badgeStima.className = "badge-stima-pagine p2";
-          badgeStima.title = "Fino a 5 voci: preventivo ottimizzato su 2 pagine pulite.";
-        } else {
-          badgeStima.innerHTML = "📄 Stima: <b>3 Pagine A4</b>";
+          badgeStima.title = "Preventivo compatto: Pagina 1 con voci e totali, Allegato Contrattuale pulito a Pagina 2.";
+        } else if(stima.ingombroP1 <= 30){
+          badgeStima.innerHTML = "📄 Stima: <b>2–3 Pagine A4</b>";
           badgeStima.className = "badge-stima-pagine p3";
-          badgeStima.title = "Più di 5 voci: tabella suddivisa su Pagina 1 e 2, allegato a Pagina 3.";
+          badgeStima.title = "Flusso multi-pagina continuo: intestazione tabella ripetuta automaticamente e allegato senza pagine vuote.";
+        } else {
+          badgeStima.innerHTML = "📄 Stima: <b>3+ Pagine A4</b>";
+          badgeStima.className = "badge-stima-pagine p3";
+          badgeStima.title = "Preventivo esteso: paginazione dinamica multi-foglio con protezione righe, clausole e firme.";
         }
       }
     }

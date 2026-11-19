@@ -202,25 +202,29 @@ function stampaListino(){
   const oggi = aIsoLocale(new Date());
   const sezioni = cats.map(c => `
     <div class="sezione">${esc(c)}</div>
-    <table class="voci"><thead><tr><th>Voce</th><th class="num" style="width:26mm">Unità</th>
-      <th class="num" style="width:28mm">Prezzo</th></tr></thead><tbody>` +
-    l.filter(v => (v.cat || "Altro") === c).map(v => `<tr>
+    <table class="voci">
+      <colgroup><col style="width:66%"><col style="width:16%"><col style="width:18%"></colgroup>
+      <thead><tr><th>Voce</th><th class="num">Unità</th>
+      <th class="num">Prezzo</th></tr></thead><tbody>` +
+    l.filter(v => (v.cat || "Altro") === c).map(v => `<tr class="voice-item">
       <td><span class="v-nome">${esc(v.nome)}</span>${v.desc ? `<span class="v-desc">${esc(v.desc)}</span>` : ""}</td>
       <td class="num">${esc(v.unita || "—")}</td>
-      <td class="num">${v.prezzo ? euro(v.prezzo) : "a preventivo"}</td></tr>`).join("") +
+      <td class="num col-totale">${v.prezzo ? euro(v.prezzo) : "a preventivo"}</td></tr>`).join("") +
     `</tbody></table>`).join("");
   document.getElementById("stampa").innerHTML = `
-    <header class="intestazione">
-      ${LOGO}
-      <div class="doc"><div class="tipo" style="font-size:13pt">Listino interno</div>
-        <div class="meta">Aggiornato al ${esc(dataIt(oggi))}<br>Documento di lavoro</div></div>
-    </header>
-    <div class="dicitura" style="margin-bottom:6mm">
-      <b>Uso interno.</b> Prezzi di riferimento per la compilazione dei preventivi, al netto di sconti,
-      imposte e maggiorazioni. Gli importi non costituiscono offerta al pubblico e vanno confermati caso per caso.
-    </div>
-    ${sezioni}
-    ${pieded()}`;
+    <div class="foglio-stampa foglio-continuo">
+      <header class="intestazione">
+        <div class="intestazione-logo">${LOGO}</div>
+        <div class="doc"><div class="tipo" style="font-size:19px">Listino interno</div>
+          <div class="meta">Aggiornato al ${esc(dataIt(oggi))}<br>Documento di lavoro</div></div>
+      </header>
+      <div class="dicitura" style="margin-bottom:14px">
+        <b>Uso interno.</b> Prezzi di riferimento per la compilazione dei preventivi, al netto di sconti,
+        imposte e maggiorazioni. Gli importi non costituiscono offerta al pubblico e vanno confermati caso per caso.
+      </div>
+      ${sezioni}
+      ${pieded()}
+    </div>`;
   document.title = `FC_Listino_Interno_${oggi}`;
   window.print();
 }

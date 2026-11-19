@@ -34,8 +34,10 @@ function bloccoTotali(t,etichettaImponibile,scontoTxt,senzaNota,titoloTotale){
   const labelTot = titoloTotale || "Totale Preventivo";
   h+=`<div class="riga totale"><span>${labelTot}</span><span class="num">${euro(t.netto)}</span></div>`;
   const d=senzaNota?"":dicituraFiscale(t);
-  if(d) h+=`<div class="nota">${d}</div>`;
-  return `<div class="totali"><div class="box">${h}</div></div>`;
+  const noteCol = d
+    ? `<div class="totali-note"><div class="totali-note-tit">Note fiscali</div><p class="nota">${d}</p></div>`
+    : `<div class="totali-note"></div>`;
+  return `<div class="totali">${noteCol}<div class="box">${h}</div></div>`;
 }
 
 function pieded(p){
@@ -54,155 +56,183 @@ function pieded(p){
     </div>
   </footer>`;
 }
+
+function stimaIngombroStampa(p){
+  const voci = Array.isArray(p?.voci) ? p.voci : [];
+  let righeVoci = 0;
+  voci.forEach(v => {
+    const descLen = String(v?.desc || "").trim().length;
+    const righeDesc = descLen > 0 ? Math.ceil(descLen / 72) : 0;
+    righeVoci += 1.9 + righeDesc;
+  });
+  const introLen = String(p?.progetto?.intro || "").trim().length;
+  const extraIntro = introLen > 240 ? Math.ceil((introLen - 240) / 105) : 0;
+  const ingombroP1 = righeVoci + extraIntro;
+  const pagina1Compatta = voci.length <= 4 && ingombroP1 <= 16;
+  return {
+    totVoci: voci.length,
+    ingombroP1,
+    pagina1Compatta
+  };
+}
+
 function generaHtmlPaginePreventivo(p, t){
   if(!p) p = raccogli();
   if(!t) t = (typeof totaliPreventivo === "function" ? totaliPreventivo(p) : totali());
   const haFirma = usaFirmaAutografa();
-  
-  const generaRighe=(lista, startIdx=1)=>lista.map((v, i)=>`<tr>
-      <td><span class="v-nome">${startIdx + i}. ${esc(v.nome)}</span>${v.desc?`<span class="v-desc">${esc(v.desc)}</span>`:""}</td>
-      <td class="num">${v.q}</td><td class="num">${euro(v.p)}</td><td class="num">${euro(v.q*v.p)}</td></tr>`).join("");
-  
-  const scheda=[["Titolo",p.progetto.titolo],["Tipologia",p.progetto.tipo],["Location",p.progetto.luogo],
-                ["Giornate",p.progetto.giornate],["Consegna",p.progetto.consegna]]
-      .filter(r=>r[1]).map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join("");
-  
-  const opz=p.opzioni.length?`<div class="sezione" style="margin-top:3.5mm">Opzioni su richiesta</div>
-      <table class="voci"><tbody>${p.opzioni.map(o=>`<tr>
+  const voci = Array.isArray(p.voci) ? p.voci : [];
+  const opzioni = Array.isArray(p.opzioni) ? p.opzioni : [];
+  const incluso = Array.isArray(p.incluso) ? p.incluso : [];
+  const escluso = Array.isArray(p.escluso) ? p.escluso : [];
+  const condizioni = Array.isArray(p.condizioni) ? p.condizioni : [];
+  const cliente = p.cliente || {};
+  const progetto = p.progetto || {};
+
+  const generaRighe=(lista, startIdx=1)=>lista.map((v, i)=>{
+    const idxFmt = String(startIdx + i).padStart(2, "0");
+    return `<tr class="voice-item">
+      <td>
+        <span class="v-nome"><span class="v-idx">${idxFmt}</span>${esc(v.nome)}</span>
+        ${v.desc?`<span class="v-desc">${esc(v.desc)}</span>`:""}
+      </td>
+      <td class="num">${v.q}</td>
+      <td class="num">${euro(v.p)}</td>
+      <td class="num col-totale">${euro(v.q*v.p)}</td>
+    </tr>`;
+  }).join("");
+
+  const scheda=[
+    ["Titolo", progetto.titolo, true],
+    ["Tipologia", progetto.tipo, false],
+    ["Location", progetto.luogo, false],
+    ["Giornate", progetto.giornate, false],
+    ["Consegna", progetto.consegna, false]
+  ]
+    .filter(r=>r[1])
+    .map(r=>`<div class="spec-item${r[2]?" spec-full":""}"><dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd></div>`)
+    .join("");
+
+  const tabellaVoci = `<table class="voci">
+    <colgroup>
+      <col style="width:62%">
+      <col style="width:10%">
+      <col style="width:14%">
+      <col style="width:14%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Descrizione Prestazione</th>
+        <th class="num">Q.tà</th>
+        <th class="num">Unitario</th>
+        <th class="num">Totale</th>
+      </tr>
+    </thead>
+    <tbody>${generaRighe(voci, 1)}</tbody>
+  </table>`;
+
+  const opz = opzioni.length ? `<div class="sezione">Opzioni su richiesta</div>
+    <table class="voci voci-opzioni">
+      <colgroup>
+        <col style="width:82%">
+        <col style="width:18%">
+      </colgroup>
+      <tbody>${opzioni.map(o=>`<tr class="voice-item">
         <td><span class="v-nome">${esc(o.nome)}</span>${o.desc?`<span class="v-desc">${esc(o.desc)}</span>`:""}</td>
-        <td class="num" style="width:28mm">${euro(o.p)}</td></tr>`).join("")}</tbody></table>`:"";
-  
-  const comprende=(p.incluso.length||p.escluso.length)?`<div class="sezione" style="margin-top:2mm">Cosa comprende</div>
-      <div class="due-colonne">
-        <div class="col-card"><div class="etichetta-incluso">✓ Incluso nell'offerta</div><ul>${p.incluso.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>
-        <div class="col-card escluso"><div class="etichetta-escluso">✕ Non incluso nell'offerta</div><ul>${p.escluso.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>
-      </div>`:"";
+        <td class="num col-totale">${euro(o.p)}</td>
+      </tr>`).join("")}</tbody>
+    </table>` : "";
 
-  const condCards = p.condizioni.length ? `<div class="sezione" style="margin-top:2mm">Condizioni contrattuali</div>
-      <div class="condizioni-grid">${p.condizioni.map((c, i)=>{
-        const isUltimoDispari = (i === p.condizioni.length - 1) && (p.condizioni.length % 2 !== 0);
-        return `<div class="cond-card"${isUltimoDispari?' style="grid-column: 1 / -1"':''}>
-          <div class="cond-tit">${esc(c[0])}</div><div class="cond-txt">${esc(c[1])}</div>
-        </div>`;
-      }).join("")}</div>` : "";
+  const comprende = (incluso.length || escluso.length) ? `<div class="sezione">Cosa comprende</div>
+    <div class="due-colonne">
+      <div class="col-card">
+        <div class="etichetta-incluso">Incluso nell'offerta</div>
+        <ul>${incluso.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+      </div>
+      <div class="col-card escluso">
+        <div class="etichetta-escluso">Escluso dall'offerta</div>
+        <ul>${escluso.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+      </div>
+    </div>` : "";
 
-  const bloccoAccettazione = `<section class="accettazione">
+  const condCards = condizioni.length ? `<div class="sezione">Condizioni contrattuali</div>
+    <div class="condizioni-grid">${condizioni.map((c, i)=>{
+      const isUltimoDispari = (i === condizioni.length - 1) && (condizioni.length % 2 !== 0);
+      return `<div class="cond-card clause${isUltimoDispari?" clause-full":""}">
+        <div class="cond-tit">${esc(c[0])}</div>
+        <div class="cond-txt">${esc(c[1])}</div>
+      </div>`;
+    }).join("")}</div>` : "";
+
+  const bloccoAccettazione = `<section class="accettazione sign-area">
     <div class="tit">Accettazione e Conferma d'Ordine</div>
     <p>Per accettare il presente preventivo, restituire copia firmata via email a <a href="mailto:${IO.mail}">${IO.mail}</a> oppure rispondere per iscritto con la formula «confermo il preventivo N. ${esc(p.numero)}».</p>
     <div class="firme">
-      <div class="f"><div class="linea"></div><div class="did">Il Committente (Data e Firma per accettazione)</div></div>
-      <div class="f"><div class="linea">${haFirma?`<img src="${FIRMA_AUTOGRAFA_PNG}" class="img-firma-auto" alt="Firma Federico Coletta">`:""}</div><div class="did">${IO.nome} · Federico Coletta</div></div>
+      <div class="f">
+        <div class="linea"></div>
+        <div class="did">Il Committente · Data e firma per accettazione</div>
+      </div>
+      <div class="f">
+        <div class="linea">${haFirma?`<img src="${FIRMA_AUTOGRAFA_PNG}" class="img-firma-auto" alt="Firma ${esc(IO.nome)}">`:""}</div>
+        <div class="did">${esc(IO.nome)}</div>
+      </div>
     </div>
   </section>`;
 
-  const totVoci = p.voci.length;
-  let htmlPagine = "";
+  const introHtml = (progetto.saluto || progetto.titolo || progetto.intro)
+    ? `<section class="intro">
+        ${progetto.saluto?`<p>${esc(progetto.saluto)}</p>`:""}
+        <p>di seguito il preventivo${progetto.titolo?` per <b>${esc(progetto.titolo)}</b>`:""}.${progetto.intro?` ${esc(maiuscola(progetto.intro))}`:""}</p>
+      </section>`
+    : "";
 
-  if(totVoci <= 5) {
-    htmlPagine = `
-      <div class="foglio-stampa">
-        <header class="intestazione">
-          ${LOGO}
-          <div class="doc"><div class="tipo">PREVENTIVO</div>
-            <div class="meta">N. <b>${esc(p.numero)}</b> · Genzano di Roma, ${esc(dataIt(p.data))}<br>
-            ${p.validita?`Valido fino al <b>${esc(dataIt(p.validita))}</b>`:""}</div></div>
-        </header>
-        <section class="blocchi">
-          <div class="blocco"><div class="etichetta">Cliente</div>
-            <div class="nome">${esc(p.cliente.nome)}</div>
-            <div class="righe">${[p.cliente.ref,p.cliente.indirizzo,p.cliente.piva,
-              [p.cliente.email,p.cliente.tel].filter(Boolean).join(" · ")].filter(Boolean).map(esc).join("<br>")}</div>
-          </div>
-          <div class="blocco card"><div class="etichetta">Specifiche Progetto</div><dl>${scheda}</dl></div>
-        </section>
-        <section class="intro">
-          ${p.progetto.saluto?`<p>${esc(p.progetto.saluto)}</p>`:""}
-          <p>di seguito il preventivo per <b>${esc(p.progetto.titolo)}</b>. ${esc(maiuscola(p.progetto.intro))}</p>
-        </section>
+  const headerPrincipale = `<header class="intestazione">
+    <div class="intestazione-logo">${LOGO}</div>
+    <div class="doc">
+      <div class="tipo">PREVENTIVO</div>
+      <div class="meta">N. <b>${esc(p.numero)}</b> · Genzano di Roma, ${esc(dataIt(p.data))}<br>
+      ${p.validita?`Valido fino al <b>${esc(dataIt(p.validita))}</b>`:""}</div>
+    </div>
+  </header>`;
+
+  const blocchiClienteProgetto = `<section class="blocchi">
+    <div class="blocco blocco-cliente">
+      <div class="etichetta">Cliente</div>
+      <div class="nome">${esc(cliente.nome)}</div>
+      <div class="righe">${[cliente.ref,cliente.indirizzo,cliente.piva,
+        [cliente.email,cliente.tel].filter(Boolean).join(" · ")].filter(Boolean).map(esc).join("<br>")}</div>
+    </div>
+    <div class="blocco blocco-specifiche">
+      <div class="etichetta">Specifiche Progetto</div>
+      <dl class="spec-grid">${scheda}</dl>
+    </div>
+  </section>`;
+
+  const stima = stimaIngombroStampa(p);
+
+  if(stima.pagina1Compatta) {
+    // Preventivo corto (2-4 voci): Pagina 1 pulita + Allegato Contrattuale a Pagina 2
+    return `
+      <div class="foglio-stampa foglio-preventivo">
+        ${headerPrincipale}
+        ${blocchiClienteProgetto}
+        ${introHtml}
         <div class="sezione">Voci di preventivo</div>
-        <table class="voci"><thead><tr><th>Descrizione Prestazione</th><th class="num" style="width:16mm">Q.tà</th>
-          <th class="num" style="width:26mm">Prezzo unit.</th><th class="num" style="width:28mm">Totale</th></tr></thead>
-          <tbody>${generaRighe(p.voci, 1)}</tbody></table>
+        ${tabellaVoci}
         ${bloccoTotali(t,"Imponibile",p.sconto_txt,false,"Totale Preventivo")}
-        
         <div class="spazio-flessibile"></div>
         <div class="rimando-continua">Segue allegato contrattuale, condizioni e firme a Pagina 2 →</div>
         ${pieded(p)}
       </div>
 
-      <div class="foglio-stampa allegato-condizioni">
-        <header class="intestazione" style="margin-bottom:3mm">
-          ${LOGO}
-          <div class="doc"><div class="tipo" style="font-size:12pt">Allegato Contrattuale & Firme</div>
-            <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div></div>
-        </header>
-        ${comprende}
-        ${opz}
-        ${condCards}
-        ${bloccoAccettazione}
-        <div class="spazio-flessibile"></div>
-        ${pieded(p)}
-      </div>`;
-  } else {
-    const sogliaP1 = totVoci <= 8 ? Math.ceil(totVoci / 2) : 6;
-    const vociP1 = p.voci.slice(0, sogliaP1);
-    const vociP2 = p.voci.slice(sogliaP1);
-
-    htmlPagine = `
-      <div class="foglio-stampa">
-        <header class="intestazione">
-          ${LOGO}
-          <div class="doc"><div class="tipo">PREVENTIVO</div>
-            <div class="meta">N. <b>${esc(p.numero)}</b> · Genzano di Roma, ${esc(dataIt(p.data))}<br>
-            ${p.validita?`Valido fino al <b>${esc(dataIt(p.validita))}</b>`:""}</div></div>
-        </header>
-        <section class="blocchi">
-          <div class="blocco"><div class="etichetta">Cliente</div>
-            <div class="nome">${esc(p.cliente.nome)}</div>
-            <div class="righe">${[p.cliente.ref,p.cliente.indirizzo,p.cliente.piva,
-              [p.cliente.email,p.cliente.tel].filter(Boolean).join(" · ")].filter(Boolean).map(esc).join("<br>")}</div>
+      <div class="foglio-stampa allegato-condizioni inizia-nuova-pagina">
+        <header class="intestazione intestazione-compatta">
+          <div class="intestazione-logo">${LOGO}</div>
+          <div class="doc">
+            <div class="tipo">Allegato Contrattuale</div>
+            <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div>
           </div>
-          <div class="blocco card"><div class="etichetta">Specifiche Progetto</div><dl>${scheda}</dl></div>
-        </section>
-        <section class="intro">
-          ${p.progetto.saluto?`<p>${esc(p.progetto.saluto)}</p>`:""}
-          <p>di seguito il preventivo per <b>${esc(p.progetto.titolo)}</b>. ${esc(maiuscola(p.progetto.intro))}</p>
-        </section>
-        <div class="sezione">Voci di preventivo (1/2)</div>
-        <table class="voci"><thead><tr><th>Descrizione Prestazione</th><th class="num" style="width:16mm">Q.tà</th>
-          <th class="num" style="width:26mm">Prezzo unit.</th><th class="num" style="width:28mm">Totale</th></tr></thead>
-          <tbody>${generaRighe(vociP1, 1)}</tbody></table>
-        
-        <div class="spazio-flessibile"></div>
-        <div class="rimando-continua">Segue continuazione voci, totali e opzioni a Pagina 2 →</div>
-        ${pieded(p)}
-      </div>
-
-      <div class="foglio-stampa">
-        <header class="intestazione" style="margin-bottom:3mm">
-          ${LOGO}
-          <div class="doc"><div class="tipo" style="font-size:12pt">Continuazione Voci & Totali</div>
-            <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · Pagina 2</div></div>
         </header>
-        <div class="sezione">Voci di preventivo (2/2)</div>
-        <table class="voci"><thead><tr><th>Descrizione Prestazione</th><th class="num" style="width:16mm">Q.tà</th>
-          <th class="num" style="width:26mm">Prezzo unit.</th><th class="num" style="width:28mm">Totale</th></tr></thead>
-          <tbody>${generaRighe(vociP2, sogliaP1 + 1)}</tbody></table>
-        
-        ${bloccoTotali(t,"Imponibile",p.sconto_txt,false,"Totale Preventivo")}
         ${opz}
-        
-        <div class="spazio-flessibile"></div>
-        <div class="rimando-continua">Segue allegato contrattuale, condizioni e firme a Pagina 3 →</div>
-        ${pieded(p)}
-      </div>
-
-      <div class="foglio-stampa allegato-condizioni">
-        <header class="intestazione" style="margin-bottom:3mm">
-          ${LOGO}
-          <div class="doc"><div class="tipo" style="font-size:12pt">Allegato Contrattuale & Firme</div>
-            <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · Pagina 3</div></div>
-        </header>
         ${comprende}
         ${condCards}
         ${bloccoAccettazione}
@@ -211,7 +241,29 @@ function generaHtmlPaginePreventivo(p, t){
       </div>`;
   }
 
-  return htmlPagine;
+  // Preventivo articolato (5+ voci o descrizioni estese): flusso continuo multi-pagina intelligente
+  return `
+    <div class="foglio-stampa foglio-continuo">
+      ${headerPrincipale}
+      ${blocchiClienteProgetto}
+      ${introHtml}
+      <div class="sezione">Voci di preventivo</div>
+      ${tabellaVoci}
+      ${bloccoTotali(t,"Imponibile",p.sconto_txt,false,"Totale Preventivo")}
+      ${opz}
+
+      <div class="allegato-condizioni flusso-continuo">
+        <div class="allegato-header-inline">
+          <div class="tit-inline">Allegato Contrattuale &amp; Condizioni</div>
+          <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>
+        </div>
+        ${comprende}
+        ${condCards}
+        ${bloccoAccettazione}
+      </div>
+
+      ${pieded(p)}
+    </div>`;
 }
 
 function generaHtmlSecondoDocumento(p, t){
@@ -226,9 +278,9 @@ function generaHtmlSecondoDocumento(p, t){
   const io = p.io || datiIo();
 
   const bloccoIo = `<div class="blocco"><div class="etichetta">${pIva?"Prestatore":"Prestatore d'opera"}</div>
-        <div class="nome">${IO.nome}</div>
-        <div class="righe">${IO.ruolo}<br>${io.indirizzo?esc(io.indirizzo)+"<br>":""}
-          ${(pIva&&io.piva)?"P. IVA "+esc(io.piva)+"<br>":""}${io.cf?"C.F. "+esc(io.cf)+"<br>":""}${IO.tel} · ${IO.mail}<br><a href="${IO.sito}" target="_blank">${IO.sito}</a></div>
+        <div class="nome">${esc(IO.nome)}</div>
+        <div class="righe">${esc(IO.ruolo)}<br>${io.indirizzo?esc(io.indirizzo)+"<br>":""}
+          ${(pIva&&io.piva)?"P. IVA "+esc(io.piva)+"<br>":""}${io.cf?"C.F. "+esc(io.cf)+"<br>":""}${esc(IO.tel)} · ${esc(IO.mail)}<br><a href="${IO.sito && IO.sito.startsWith('http') ? IO.sito : ('https://' + (IO.sito || 'federicoletta.com'))}" target="_blank">${esc(IO.sito)}</a></div>
       </div>`;
 
   const avvertenza = pIva
@@ -241,36 +293,50 @@ function generaHtmlSecondoDocumento(p, t){
        Il compenso non supera il limite annuo di € 5.000 oltre il quale è dovuta l'iscrizione alla Gestione Separata INPS.`;
 
   return `
-    <div class="foglio-stampa">
-    <header class="intestazione">
-      ${LOGO}
-      <div class="doc"><div class="tipo" style="font-size:14pt">${titolo}</div>
-        <div class="meta">Genzano di Roma, ${esc(dataIt(oggi))}<br>Rif. preventivo <b>${esc(p.numero)}</b></div></div>
-    </header>
-    <section class="blocchi">
-      ${bloccoIo}
-      <div class="blocco card"><div class="etichetta">Committente</div>
-        <div class="nome">${esc(p.cliente.nome)}</div>
-        <div class="righe">${[p.cliente.indirizzo,p.cliente.piva].filter(Boolean).map(esc).join("<br>")}</div>
+    <div class="foglio-stampa foglio-secondo">
+      <header class="intestazione">
+        <div class="intestazione-logo">${LOGO}</div>
+        <div class="doc">
+          <div class="tipo" style="font-size:18px">${titolo}</div>
+          <div class="meta">Genzano di Roma, ${esc(dataIt(oggi))}<br>Rif. preventivo <b>${esc(p.numero)}</b></div>
+        </div>
+      </header>
+      <section class="blocchi">
+        ${bloccoIo}
+        <div class="blocco"><div class="etichetta">Committente</div>
+          <div class="nome">${esc(p.cliente.nome)}</div>
+          <div class="righe">${[p.cliente.indirizzo,p.cliente.piva].filter(Boolean).map(esc).join("<br>")}</div>
+        </div>
+      </section>
+      <div class="sezione">${pIva?"Prestazione concordata":"Prestazione svolta"}</div>
+      <table class="voci">
+        <colgroup>
+          <col style="width:80%">
+          <col style="width:20%">
+        </colgroup>
+        <thead><tr><th>Descrizione Prestazione</th><th class="num">Importo</th></tr></thead>
+        <tbody><tr class="voice-item">
+          <td><span class="v-nome">${esc(p.progetto.titolo)}</span>
+          <span class="v-desc">${esc(p.voci.map(v=>v.nome).join(" · "))}${p.progetto.luogo?" · "+esc(p.progetto.luogo):""}</span></td>
+          <td class="num col-totale">${euro(compenso)}</td>
+        </tr></tbody>
+      </table>
+      ${bloccoTotali(Object.assign({},t,{imponibile:compenso,sconto:0}), pIva?"Compenso":"Compenso lordo", "", true, pIva?"Totale Documento":"Netto a pagare")}
+      <div class="dicitura">${avvertenza}</div>
+      <section class="pagamento">
+        <div class="col"><div class="etichetta">Modalità di pagamento</div>
+          <div class="val">Bonifico bancario</div>${io.iban?"IBAN "+esc(io.iban)+"<br>":""}Intestato a ${esc(IO.nome)}</div>
+        <div class="col"><div class="etichetta">Termini e Causale</div>
+          <div class="val">30 giorni data documento</div>Causale: ${esc(titolo)} rif. ${esc(p.numero)}${p.progetto.titolo?" · "+esc(p.progetto.titolo):""}</div>
+      </section>
+      <div class="firma-singola sign-area">
+        <div class="b">
+          <div class="linea">${haFirma?`<img src="${FIRMA_AUTOGRAFA_PNG}" class="img-firma-auto" alt="Firma ${esc(IO.nome)}">`:""}</div>
+          <div class="did">${esc(IO.nome)}</div>
+        </div>
       </div>
-    </section>
-    <div class="sezione">${pIva?"Prestazione concordata":"Prestazione svolta"}</div>
-    <table class="voci"><thead><tr><th>Descrizione Prestazione</th><th class="num" style="width:32mm">Importo</th></tr></thead>
-      <tbody><tr>
-        <td><span class="v-nome">${esc(p.progetto.titolo)}</span>
-        <span class="v-desc">${esc(p.voci.map(v=>v.nome).join(" · "))}${p.progetto.luogo?" · "+esc(p.progetto.luogo):""}</span></td>
-        <td class="num">${euro(compenso)}</td></tr></tbody></table>
-    ${bloccoTotali(Object.assign({},t,{imponibile:compenso,sconto:0}), pIva?"Compenso":"Compenso lordo", "", true, pIva?"Totale Documento":"Netto a pagare")}
-    <div class="dicitura">${avvertenza}</div>
-    <section class="pagamento">
-      <div class="col"><div class="etichetta">Modalità di pagamento</div>
-        <div class="val">Bonifico bancario</div>${io.iban?"IBAN "+esc(io.iban)+"<br>":""}Intestato a ${IO.nome}</div>
-      <div class="col"><div class="etichetta">Termini e Causale</div>
-        <div class="val">30 giorni data documento</div>Causale: ${esc(titolo)} rif. ${esc(p.numero)}${p.progetto.titolo?" · "+esc(p.progetto.titolo):""}</div>
-    </section>
-    <div class="firma-singola"><div class="b"><div class="linea">${haFirma?`<img src="${FIRMA_AUTOGRAFA_PNG}" class="img-firma-auto" alt="Firma Federico Coletta">`:""}</div><div class="did">${IO.nome} · Federico Coletta</div></div></div>
-    <div class="spazio-flessibile"></div>
-    ${pieded(p)}
+      <div class="spazio-flessibile"></div>
+      ${pieded(p)}
     </div>`;
 }
 
@@ -308,6 +374,7 @@ function stampaSecondoVerificato(p){
 }
 
 if(typeof window !== 'undefined'){
+  window.stimaIngombroStampa = stimaIngombroStampa;
   window.generaHtmlPaginePreventivo = generaHtmlPaginePreventivo;
   window.generaHtmlSecondoDocumento = generaHtmlSecondoDocumento;
   window.pieded = pieded;
@@ -320,6 +387,7 @@ if(typeof window !== 'undefined' && window.App){
     fiscalNotice: dicituraFiscale,
     totalsBlock: bloccoTotali,
     footer: pieded,
+    estimateLayout: stimaIngombroStampa,
     printQuote: stampaPreventivoVerificato,
     printProforma: stampaSecondoVerificato,
     generatePagesHtml: generaHtmlPaginePreventivo,

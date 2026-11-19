@@ -2697,158 +2697,888 @@ body.auth-locked #app {
 }
 
 /* === print.css === */
-/* ---------- area di stampa ---------- */
-#stampa{display:none}
+/* ==========================================================================
+   STAMPA & ESPORTAZIONE PDF A4 — DESIGN EDITORIALE
+   Palette:
+     Primario istituzionale: #1B4332 (Verde bosco / petrolio scuro)
+     Testo principale:       #18181B (Nero carbone)
+     Testo secondario:       #3F3F46 / #52525B
+     Neutro / Escluso:       #71717A
+     Divisori sottili:       #E4E4E7
+     Fondino caldo avorio:   #F8F8F6
+     Linee firma:            #A1A1AA
+   ========================================================================== */
 
-#stampa.rendering-pdf{
-  display:block !important;
-  width:210mm !important;
-  background:#ffffff !important;
-  color:#1A1A1A !important;
-  margin:0 auto !important;
-  box-sizing:border-box !important;
-  padding:8mm 11mm !important;
+#stampa {
+  display: none;
 }
 
-@media print{
-  @page{size:A4;margin:8mm 11mm 8mm 11mm}
-  body{background:#fff}
-  #app,#msg{display:none !important}
-  #stampa{display:block}
+#stampa.rendering-pdf {
+  display: block !important;
+  width: 210mm !important;
+  background: #ffffff !important;
+  color: #18181B !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  padding: 18mm 20mm !important;
 }
 
-/* stile documento stampato */
-#stampa{font-family:'Inter',Arial,sans-serif;color:#1A1A1A;font-size:8.2pt;line-height:1.35;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 20mm;
+  }
 
-#stampa .foglio-stampa{
-  height:280mm;min-height:280mm;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column;
-  page-break-after:always;break-after:page;position:relative
+  html,
+  body {
+    background: #ffffff !important;
+    color: #18181B !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #app,
+  #msg,
+  #auth-gate-overlay,
+  #crash-protection-banner {
+    display: none !important;
+  }
+
+  #stampa {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
 }
-#stampa .foglio-stampa:last-child{
-  page-break-after:auto;break-after:auto
+
+/* ---------- Contenitore base & colori esatti ---------- */
+#stampa,
+#stampa * {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
-#stampa .spazio-flessibile{
-  flex:1;min-height:2mm
+
+#stampa {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  color: #18181B;
+  font-size: 9px;
+  line-height: 1.48;
+  text-align: left;
+  background: #ffffff;
 }
 
-#stampa .intestazione{display:flex;align-items:flex-end;justify-content:space-between;
-  padding-bottom:2mm;border-bottom:1.8pt solid #0C4E54}
-#stampa .intestazione svg{height:9.5mm;width:auto;display:block}
-#stampa .doc{text-align:right}
-#stampa .doc .tipo{font-family:'DM Sans',Arial,sans-serif;font-weight:700;font-size:13pt;color:#0C4E54;
-  letter-spacing:.10em;text-transform:uppercase;line-height:1.1}
-#stampa .doc .meta{font-size:7.8pt;color:#6B6B6B;margin-top:.6mm;line-height:1.3}
-#stampa .doc .meta b{color:#1A1A1A;font-weight:600}
-
-#stampa .blocchi{display:flex;gap:5mm;margin-top:2.2mm}
-#stampa .blocco{flex:1}
-#stampa .etichetta{font-family:'DM Sans',Arial,sans-serif;font-weight:600;font-size:6.8pt;
-  letter-spacing:.14em;text-transform:uppercase;color:#01696F;margin-bottom:.8mm}
-#stampa .blocco .nome{font-family:'DM Sans',Arial,sans-serif;font-weight:700;font-size:10pt;color:#1A1A1A;line-height:1.2}
-#stampa .blocco .righe{color:#6B6B6B;font-size:8pt;line-height:1.32;margin-top:.5mm}
-#stampa .blocco.card{background:#F4F3EF;padding:2mm 3mm;border-left:2pt solid #0C4E54;border-radius:0 2px 2px 0}
-#stampa .blocco.card dl{margin:0;display:grid;grid-template-columns:22mm 1fr;row-gap:.6mm;column-gap:2.5mm;font-size:8pt}
-#stampa .blocco.card dt{color:#6B6B6B;font-weight:500}
-#stampa .blocco.card dd{margin:0;font-weight:600;color:#1A1A1A}
-
-#stampa .intro{margin-top:2mm;background:#FAF9F6;border:1px solid #ECEAE4;border-radius:2px;
-  padding:1.8mm 2.8mm;font-size:7.8pt;line-height:1.32;color:#333}
-#stampa .intro p{margin:0 0 1mm}
-#stampa .intro p:last-child{margin-bottom:0}
-
-#stampa .sezione{font-family:'DM Sans',Arial,sans-serif;font-weight:700;font-size:8.8pt;color:#0C4E54;
-  margin:3mm 0 1.5mm;padding-bottom:.8mm;border-bottom:1px solid #D9D6CF;
-  page-break-after:avoid;break-after:avoid;letter-spacing:0.04em;text-transform:uppercase}
-
-#stampa table.voci{width:100%;border-collapse:collapse;font-size:8.2pt}
-#stampa table.voci thead th{font-family:'DM Sans',Arial,sans-serif;font-weight:600;font-size:6.8pt;
-  letter-spacing:.14em;text-transform:uppercase;color:#01696F;text-align:left;
-  padding:0 1.5mm 1mm;border-bottom:1.5px solid #0C4E54}
-#stampa table.voci th.num,#stampa table.voci td.num{text-align:right;white-space:nowrap;
-  font-variant-numeric:tabular-nums lining-nums}
-#stampa table.voci tbody td{padding:1.2mm 1.5mm;border-bottom:1px solid #ECEAE4;vertical-align:top}
-#stampa table.voci tbody tr:nth-child(even) td{background:#FAF9F6}
-#stampa table.voci tr{page-break-inside:avoid;break-inside:avoid}
-#stampa .v-nome{font-family:'DM Sans',Arial,sans-serif;font-weight:700;color:#1A1A1A;display:block;font-size:8.5pt}
-#stampa .v-desc{display:block;color:#666666;font-size:7.4pt;line-height:1.24;margin-top:.3mm}
-
-/* Totali a destra con barra monocolore */
-#stampa .totali{display:flex;justify-content:flex-end;margin-top:2mm;page-break-inside:avoid;break-inside:avoid}
-#stampa .totali .box{width:85mm}
-#stampa .totali .riga{display:flex;justify-content:space-between;align-items:center;padding:.7mm 1.5mm;font-size:8.2pt;color:#383838}
-#stampa .totali .riga.att{color:#666666}
-#stampa .totali .riga .num{font-variant-numeric:tabular-nums lining-nums;font-weight:600;color:#1A1A1A;white-space:nowrap;flex-shrink:0;text-align:right;margin-left:2mm}
-#stampa .totali .riga.totale{background:#0C4E54 !important;color:#ffffff !important;padding:1.8mm 2.4mm;margin-top:1mm;
-  border-radius:2px;font-family:'DM Sans',Arial,sans-serif;font-weight:700;font-size:10pt;
-  display:flex;justify-content:space-between;align-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-#stampa .totali .riga.totale span{color:#ffffff !important}
-#stampa .totali .nota{font-size:6.6pt;color:#777777;padding:1mm 0 0;line-height:1.22;text-align:right}
-
-#stampa .rimando-continua{text-align:right;font-size:7.2pt;color:#777777;font-style:italic;margin-top:1.5mm;margin-bottom:.6mm;
-  page-break-after:avoid;break-after:avoid}
-
-/* Allegato Condizioni e Firme (Pagina 2 o ultima pagina) */
-#stampa .foglio-stampa.allegato-condizioni{
-  page-break-inside:avoid !important;break-inside:avoid !important;
+/* ---------- Gestione fogli & impaginazione dinamica ---------- */
+#stampa .foglio-stampa {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  position: relative;
+  display: block;
 }
-#stampa .allegato-condizioni .sezione{
-  margin-top:1.4mm;margin-bottom:1mm;font-size:7.8pt;
+
+/* Preventivi brevi (2-4 voci): Pagina 1 e Pagina 2 pulite senza clipping */
+#stampa .foglio-stampa.foglio-preventivo,
+#stampa .foglio-stampa.allegato-condizioni.inizia-nuova-pagina,
+#stampa .foglio-stampa.foglio-secondo {
+  display: flex;
+  flex-direction: column;
+  min-height: 254mm;
 }
-#stampa .due-colonne{display:flex;gap:3mm;margin-top:1mm;page-break-inside:avoid;break-inside:avoid}
-#stampa .col-card{flex:1;background:#FAF9F6;border:1px solid #ECEAE4;border-radius:2px;padding:1.5mm 2.4mm}
-#stampa .col-card.escluso{background:#FAF9F6}
-#stampa .etichetta-incluso{font-family:'DM Sans',Arial,sans-serif;font-weight:700;font-size:6.8pt;letter-spacing:.12em;
-  text-transform:uppercase;color:#01696F;margin-bottom:.4mm}
-#stampa .etichetta-escluso{font-family:'DM Sans',Arial,sans-serif;font-weight:700;font-size:6.8pt;letter-spacing:.12em;
-  text-transform:uppercase;color:#994040;margin-bottom:.4mm}
-#stampa .due-colonne ul{margin:0;padding-left:3.5mm;font-size:7.0pt;color:#383838}
-#stampa .due-colonne li{margin-bottom:.3mm;line-height:1.2}
-#stampa .due-colonne li::marker{color:#1BA0AB}
-#stampa .due-colonne .escluso li::marker{color:#D9D6CF}
 
-#stampa .condizioni-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2mm 2.4mm;margin-top:1mm;margin-bottom:1.4mm}
-#stampa .sezione{page-break-after:avoid !important;break-after:avoid-page !important}
-#stampa .cond-card:first-child,
-#stampa .cond-card:nth-child(2){page-break-before:avoid !important;break-before:avoid !important}
-#stampa .cond-card{background:#FAF9F6;border:1px solid #ECEAE4;border-left:2pt solid #0C4E54;border-radius:2px;
-  padding:1.1mm 2mm;font-size:7.0pt}
-#stampa .cond-tit{font-family:'DM Sans',Arial,sans-serif;font-weight:700;font-size:6.2pt;letter-spacing:.12em;
-  text-transform:uppercase;color:#01696F;margin-bottom:.2mm}
-#stampa .cond-txt{color:#383838;line-height:1.18}
+#stampa .foglio-stampa.inizia-nuova-pagina {
+  break-before: page;
+  page-break-before: always;
+}
 
-#stampa .accettazione{margin-top:1.5mm;border:1px solid #D9D6CF;background:#FAF9F6;padding:1.6mm 2.6mm;
-  border-radius:2px;page-break-inside:avoid !important;break-inside:avoid !important}
-#stampa .accettazione .tit{font-family:'DM Sans',Arial,sans-serif;font-weight:700;font-size:7.8pt;color:#0C4E54;margin-bottom:.4mm}
-#stampa .accettazione p{margin:0 0 1.2mm;font-size:6.9pt;color:#666666;line-height:1.22}
-#stampa .accettazione a{color:#01696F;text-decoration:none}
-#stampa .firme{display:flex;gap:8mm}
-#stampa .firme .f{flex:1;position:relative}
-#stampa .firme .linea{border-bottom:1px solid #1A1A1A;height:7.5mm;position:relative}
-#stampa .img-firma-auto{position:absolute;bottom:-1.5mm;left:4mm;height:11.5mm;width:auto;pointer-events:none;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact}
-#stampa .firme .did{font-family:'DM Sans',Arial,sans-serif;font-size:6.2pt;letter-spacing:.08em;
-  text-transform:uppercase;color:#666666;margin-top:.8mm}
+/* Preventivi lunghi (flusso continuo multi-pagina senza pagine quasi vuote) */
+#stampa .allegato-condizioni.flusso-continuo {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #E4E4E7;
+  break-before: auto;
+  page-break-before: auto;
+}
 
-/* Footer SEMPRE ancorato a fondo pagina */
-#stampa .pieded{margin-top:auto;border-top:1px solid #D9D6CF;padding-top:1.2mm;font-size:6.8pt;color:#666666;line-height:1.32;
-  page-break-inside:avoid !important;break-inside:avoid !important}
-#stampa .pieded b{color:#0C4E54;font-family:'DM Sans',Arial,sans-serif}
-#stampa .pieded a{color:#01696F;text-decoration:none}
+#stampa .allegato-header-inline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+#stampa .allegato-header-inline .tit-inline {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: #1B4332;
+}
+
+#stampa .allegato-header-inline .rif-inline {
+  font-size: 8px;
+  color: #71717A;
+  white-space: nowrap;
+}
+
+#stampa .spazio-flessibile {
+  flex: 1 1 auto;
+  min-height: 8px;
+}
+
+/* ---------- Intestazione & Logo ---------- */
+#stampa .intestazione {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #E4E4E7;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+#stampa .intestazione-logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  line-height: 0;
+  overflow: visible;
+}
+
+/* Aspect ratio nativo SVG LOGO: 1322 / 279 = 4.738 */
+#stampa .intestazione-logo svg,
+#stampa .intestazione > svg {
+  height: 40px;
+  width: 190px;
+  max-width: 190px;
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+#stampa .intestazione .doc {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+}
+
+#stampa .intestazione .doc .tipo {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 23px;
+  color: #1B4332;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 0;
+}
+
+#stampa .intestazione .doc .meta {
+  font-size: 8.5px;
+  color: #52525B;
+  margin-top: 6px;
+  line-height: 1.48;
+  text-align: right;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+#stampa .intestazione .doc .meta b {
+  color: #18181B;
+  font-weight: 600;
+}
+
+/* Intestazione compatta per Pagina 2 (Allegato Contrattuale) */
+#stampa .intestazione.intestazione-compatta {
+  align-items: center;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+#stampa .intestazione.intestazione-compatta .intestazione-logo svg,
+#stampa .intestazione.intestazione-compatta > svg {
+  height: 30px;
+  width: 142px;
+  max-width: 142px;
+}
+
+#stampa .intestazione.intestazione-compatta .doc .tipo {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+#stampa .intestazione.intestazione-compatta .doc .meta {
+  font-size: 8px;
+  margin-top: 3px;
+}
+
+/* ---------- Griglia Cliente vs Specifiche Progetto (Zero bordi, gap 32px) ---------- */
+#stampa .blocchi {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #E4E4E7;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+#stampa .blocco {
+  min-width: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+}
+
+#stampa .etichetta {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1B4332;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+#stampa .blocco .nome {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #18181B;
+  line-height: 1.25;
+  margin-bottom: 5px;
+  text-align: left;
+}
+
+#stampa .blocco .righe {
+  color: #3F3F46;
+  font-size: 8.75px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+#stampa .blocco .righe a {
+  color: #1B4332;
+  text-decoration: none;
+}
+
+/* Specifiche progetto: etichette piccole in maiuscoletto sopra al valore */
+#stampa .spec-grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+}
+
+#stampa .spec-item {
+  min-width: 0;
+  text-align: left;
+}
+
+#stampa .spec-item.spec-full {
+  grid-column: 1 / -1;
+}
+
+#stampa .spec-item dt {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #71717A;
+  line-height: 1.25;
+  margin: 0 0 2px 0;
+  text-align: left;
+}
+
+#stampa .spec-item dd {
+  margin: 0;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #18181B;
+  line-height: 1.38;
+  text-align: left;
+}
+
+/* ---------- Box Introduttivo (Avorio piatto + sola barra sinistra) ---------- */
+#stampa .intro {
+  margin: 18px 0 22px;
+  padding: 12px 16px;
+  background: #F8F8F6;
+  border: none;
+  border-left: 2.5px solid #1B4332;
+  border-radius: 0;
+  font-size: 9px;
+  line-height: 1.5;
+  color: #3F3F46;
+  text-align: left;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+#stampa .intro p {
+  margin: 0 0 6px;
+  text-align: left;
+}
+
+#stampa .intro p:last-child {
+  margin-bottom: 0;
+}
+
+#stampa .intro b {
+  color: #18181B;
+  font-weight: 600;
+}
+
+/* ---------- Intestazioni di sezione ---------- */
+#stampa .sezione {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1B4332;
+  margin: 22px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #E4E4E7;
+  text-align: left;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+#stampa .allegato-condizioni .sezione:first-of-type {
+  margin-top: 6px;
+}
+
+/* ---------- Tabella Voci di Preventivo ---------- */
+#stampa table.voci {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin-top: 4px;
+}
+
+#stampa table.voci thead {
+  display: table-header-group;
+}
+
+#stampa table.voci tfoot {
+  display: table-footer-group;
+}
+
+#stampa table.voci thead th {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #52525B;
+  text-align: left;
+  padding: 0 0 8px 0;
+  border-bottom: 1.5px solid #1B4332;
+}
+
+#stampa table.voci thead th.num {
+  text-align: right;
+  padding-left: 10px;
+}
+
+#stampa table.voci tbody tr,
+#stampa table.voci tr.voice-item {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+#stampa table.voci tbody td {
+  padding: 13px 0;
+  border-bottom: 1px solid #E4E4E7;
+  vertical-align: top;
+  background: transparent;
+  text-align: left;
+}
+
+#stampa table.voci tbody td.num {
+  padding: 13px 0 13px 10px;
+  text-align: right;
+  white-space: nowrap;
+  font-size: 9.5px;
+  color: #3F3F46;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+#stampa table.voci tbody td.num.col-totale {
+  font-weight: 600;
+  color: #18181B;
+}
+
+#stampa .v-nome {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 10.5px;
+  color: #18181B;
+  line-height: 1.32;
+  display: block;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+#stampa .v-idx {
+  color: #1B4332;
+  font-weight: 600;
+  font-size: 9px;
+  margin-right: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+#stampa .v-desc {
+  display: block;
+  color: #3F3F46;
+  font-size: 8.8px;
+  font-weight: 400;
+  line-height: 1.48;
+  text-align: left;
+}
+
+/* ---------- Riepilogo Totali & Note Fiscali affiancate ---------- */
+#stampa .totali {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 238px;
+  gap: 28px;
+  align-items: start;
+  margin-top: 18px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+#stampa .totali-note {
+  text-align: left;
+  padding-top: 4px;
+}
+
+#stampa .totali-note-tit {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 7.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #71717A;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+#stampa .totali .nota {
+  margin: 0;
+  font-size: 7.5px;
+  color: #52525B;
+  line-height: 1.48;
+  text-align: left;
+}
+
+#stampa .totali .box {
+  width: 100%;
+}
+
+#stampa .totali .riga {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 2px;
+  font-size: 9px;
+  color: #3F3F46;
+  border-bottom: 1px solid #E4E4E7;
+}
+
+#stampa .totali .riga.att {
+  color: #52525B;
+}
+
+#stampa .totali .riga .num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 600;
+  color: #18181B;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+#stampa .totali .riga.totale {
+  background: #1B4332 !important;
+  color: #ffffff !important;
+  border-bottom: none;
+  padding: 10px 14px;
+  margin-top: 8px;
+  border-radius: 2px;
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#stampa .totali .riga.totale span {
+  color: #ffffff !important;
+}
+
+#stampa .totali .riga.totale .num {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#stampa .rimando-continua {
+  text-align: right;
+  font-size: 8px;
+  color: #71717A;
+  font-style: italic;
+  margin-top: 14px;
+  margin-bottom: 8px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* ---------- Cosa Comprende (Incluso / Escluso senza box grigi) ---------- */
+#stampa .due-colonne {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+#stampa .col-card {
+  background: #F8F8F6;
+  border: none;
+  border-radius: 0;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+#stampa .col-card.escluso {
+  background: transparent;
+  padding: 12px 4px;
+}
+
+#stampa .etichetta-incluso {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1B4332;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+#stampa .etichetta-escluso {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #71717A;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+#stampa .due-colonne ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 8.75px;
+  color: #3F3F46;
+  text-align: left;
+}
+
+#stampa .due-colonne li {
+  position: relative;
+  padding-left: 13px;
+  margin-bottom: 4.5px;
+  line-height: 1.46;
+  text-align: left;
+}
+
+#stampa .due-colonne li:last-child {
+  margin-bottom: 0;
+}
+
+#stampa .due-colonne li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #1B4332;
+  font-weight: 700;
+  font-size: 8.5px;
+}
+
+#stampa .due-colonne .escluso ul {
+  color: #52525B;
+}
+
+#stampa .due-colonne .escluso li::before {
+  content: "—";
+  color: #71717A;
+  font-weight: 500;
+}
+
+/* ---------- Condizioni Contrattuali (Editoriale pulito, zero boxitis) ---------- */
+#stampa .condizioni-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px 28px;
+  margin-top: 8px;
+  margin-bottom: 18px;
+}
+
+#stampa .cond-card,
+#stampa .clause {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #E4E4E7;
+  border-radius: 0;
+  padding: 0 0 10px 0;
+  text-align: left;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+#stampa .cond-card.clause-full {
+  grid-column: 1 / -1;
+}
+
+#stampa .cond-tit {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1B4332;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+#stampa .cond-txt {
+  color: #3F3F46;
+  font-size: 8.6px;
+  line-height: 1.48;
+  text-align: left;
+}
+
+/* ---------- Area Firme & Accettazione (Unboxed, linee pulite) ---------- */
+#stampa .accettazione,
+#stampa .sign-area {
+  margin-top: 20px;
+  padding: 16px 0 6px;
+  border: none;
+  border-top: 1px solid #E4E4E7;
+  background: transparent;
+  border-radius: 0;
+  text-align: left;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+#stampa .accettazione .tit {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1B4332;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+#stampa .accettazione p {
+  margin: 0 0 22px;
+  font-size: 8.5px;
+  color: #52525B;
+  line-height: 1.48;
+  text-align: left;
+}
+
+#stampa .accettazione a {
+  color: #1B4332;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+#stampa .firme {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 36px;
+}
+
+#stampa .firme .f {
+  position: relative;
+  text-align: left;
+}
+
+#stampa .firme .linea {
+  border-bottom: 1px solid #A1A1AA;
+  height: 36px;
+  position: relative;
+}
+
+#stampa .img-firma-auto {
+  position: absolute;
+  bottom: -4px;
+  left: 6px;
+  height: 44px;
+  width: auto;
+  max-width: 170px;
+  object-fit: contain;
+  pointer-events: none;
+  background: transparent;
+}
+
+#stampa .firme .did {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #52525B;
+  margin-top: 6px;
+  text-align: left;
+}
+
+/* ---------- Footer ---------- */
+#stampa .pieded {
+  margin-top: auto;
+  border-top: 1px solid #E4E4E7;
+  padding-top: 10px;
+  font-size: 7.5px;
+  color: #71717A;
+  line-height: 1.5;
+  text-align: left;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+#stampa .foglio-continuo .pieded {
+  margin-top: 24px;
+}
+
+#stampa .pieded b {
+  color: #1B4332;
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+}
+
+#stampa .pieded a {
+  color: #3F3F46;
+  text-decoration: none;
+}
+
 #stampa .pieded .footer-riga-1,
-#stampa .pieded .footer-riga-2{display:block}
-#stampa .pieded .dati-fisc{white-space:nowrap}
+#stampa .pieded .footer-riga-2 {
+  display: block;
+}
 
-#stampa .dicitura{margin-top:2.5mm;background:#F4F3EF;padding:2.2mm 3mm;font-size:7.4pt;color:#666666;line-height:1.28}
-#stampa .dicitura b{color:#1A1A1A;font-weight:600}
-#stampa .pagamento{display:flex;gap:6mm;margin-top:3mm;background:#F4F3EF;padding:2.2mm 3mm;border-left:2pt solid #0C4E54}
-#stampa .pagamento .col{flex:1;font-size:7.6pt;color:#666666}
-#stampa .pagamento .val{font-family:'DM Sans',Arial,sans-serif;font-weight:700;color:#1A1A1A;font-size:8.8pt;margin:.6mm 0}
-#stampa .firma-singola{display:flex;justify-content:flex-end;margin-top:4mm}
-#stampa .firma-singola .b{width:55mm;text-align:center;position:relative}
-#stampa .firma-singola .linea{border-bottom:1px solid #1A1A1A;height:9mm;position:relative}
-#stampa .firma-singola .did{font-family:'DM Sans',Arial,sans-serif;font-size:6.4pt;letter-spacing:.1em;
-  text-transform:uppercase;color:#666666;margin-top:.8mm}
+#stampa .pieded .dati-fisc {
+  white-space: nowrap;
+}
+
+/* ---------- Stili Proforma / Nota di prestazione & Listino ---------- */
+#stampa .dicitura {
+  margin-top: 18px;
+  background: #F8F8F6;
+  border: none;
+  border-left: 2.5px solid #1B4332;
+  padding: 12px 16px;
+  font-size: 8.5px;
+  color: #3F3F46;
+  line-height: 1.5;
+  text-align: left;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+#stampa .dicitura b {
+  color: #18181B;
+  font-weight: 600;
+}
+
+#stampa .pagamento {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 18px;
+  padding: 14px 0;
+  border-top: 1px solid #E4E4E7;
+  border-bottom: 1px solid #E4E4E7;
+  background: transparent;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+#stampa .pagamento .col {
+  font-size: 8.5px;
+  color: #52525B;
+  line-height: 1.48;
+  text-align: left;
+}
+
+#stampa .pagamento .val {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 700;
+  color: #18181B;
+  font-size: 10px;
+  margin: 4px 0;
+}
+
+#stampa .firma-singola {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 26px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+#stampa .firma-singola .b {
+  width: 210px;
+  text-align: left;
+  position: relative;
+}
+
+#stampa .firma-singola .linea {
+  border-bottom: 1px solid #A1A1AA;
+  height: 36px;
+  position: relative;
+}
+
+#stampa .firma-singola .did {
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #52525B;
+  margin-top: 6px;
+}
 
 /* === dark-mode.css === */
 /* ---------- Tema Dark ---------- */
@@ -3089,7 +3819,7 @@ html[data-tema="dark"] ::-webkit-scrollbar-thumb:hover{
   html[data-tema="dark"],
   html[data-tema="dark"] body{
     background:#fff !important;
-    color:#1A1A1A !important;
+    color:#18181B !important;
   }
 }
 
@@ -5193,17 +5923,29 @@ if (typeof globalThis !== 'undefined') {
       if(bSec) bSec.textContent = labelSecondo;
 
       // 4. Stima dinamica pagine A4
-      const totVoci = document.querySelectorAll("#corpo-voci tr").length;
+      const vociCorrente = typeof window.leggiVoci === "function" ? window.leggiVoci() : [];
+      const totVoci = vociCorrente.length || document.querySelectorAll("#corpo-voci tr").length;
       const badgeStima = document.getElementById("badge-stima-pagine");
       if(badgeStima){
-        if(totVoci <= 5){
+        const stima = typeof window.stimaIngombroStampa === "function"
+          ? window.stimaIngombroStampa({
+              voci: vociCorrente,
+              progetto: { intro: window.val ? window.val("pr_intro") : "" }
+            })
+          : { pagina1Compatta: totVoci <= 4, ingombroP1: totVoci * 3 };
+
+        if(stima.pagina1Compatta){
           badgeStima.innerHTML = "📄 Stima: <b>2 Pagine A4</b>";
           badgeStima.className = "badge-stima-pagine p2";
-          badgeStima.title = "Fino a 5 voci: preventivo ottimizzato su 2 pagine pulite.";
-        } else {
-          badgeStima.innerHTML = "📄 Stima: <b>3 Pagine A4</b>";
+          badgeStima.title = "Preventivo compatto: Pagina 1 con voci e totali, Allegato Contrattuale pulito a Pagina 2.";
+        } else if(stima.ingombroP1 <= 30){
+          badgeStima.innerHTML = "📄 Stima: <b>2–3 Pagine A4</b>";
           badgeStima.className = "badge-stima-pagine p3";
-          badgeStima.title = "Più di 5 voci: tabella suddivisa su Pagina 1 e 2, allegato a Pagina 3.";
+          badgeStima.title = "Flusso multi-pagina continuo: intestazione tabella ripetuta automaticamente e allegato senza pagine vuote.";
+        } else {
+          badgeStima.innerHTML = "📄 Stima: <b>3+ Pagine A4</b>";
+          badgeStima.className = "badge-stima-pagine p3";
+          badgeStima.title = "Preventivo esteso: paginazione dinamica multi-foglio con protezione righe, clausole e firme.";
         }
       }
     }
@@ -8119,25 +8861,29 @@ function stampaListino(){
   const oggi = aIsoLocale(new Date());
   const sezioni = cats.map(c => `
     <div class="sezione">${esc(c)}</div>
-    <table class="voci"><thead><tr><th>Voce</th><th class="num" style="width:26mm">Unità</th>
-      <th class="num" style="width:28mm">Prezzo</th></tr></thead><tbody>` +
-    l.filter(v => (v.cat || "Altro") === c).map(v => `<tr>
+    <table class="voci">
+      <colgroup><col style="width:66%"><col style="width:16%"><col style="width:18%"></colgroup>
+      <thead><tr><th>Voce</th><th class="num">Unità</th>
+      <th class="num">Prezzo</th></tr></thead><tbody>` +
+    l.filter(v => (v.cat || "Altro") === c).map(v => `<tr class="voice-item">
       <td><span class="v-nome">${esc(v.nome)}</span>${v.desc ? `<span class="v-desc">${esc(v.desc)}</span>` : ""}</td>
       <td class="num">${esc(v.unita || "—")}</td>
-      <td class="num">${v.prezzo ? euro(v.prezzo) : "a preventivo"}</td></tr>`).join("") +
+      <td class="num col-totale">${v.prezzo ? euro(v.prezzo) : "a preventivo"}</td></tr>`).join("") +
     `</tbody></table>`).join("");
   document.getElementById("stampa").innerHTML = `
-    <header class="intestazione">
-      ${LOGO}
-      <div class="doc"><div class="tipo" style="font-size:13pt">Listino interno</div>
-        <div class="meta">Aggiornato al ${esc(dataIt(oggi))}<br>Documento di lavoro</div></div>
-    </header>
-    <div class="dicitura" style="margin-bottom:6mm">
-      <b>Uso interno.</b> Prezzi di riferimento per la compilazione dei preventivi, al netto di sconti,
-      imposte e maggiorazioni. Gli importi non costituiscono offerta al pubblico e vanno confermati caso per caso.
-    </div>
-    ${sezioni}
-    ${pieded()}`;
+    <div class="foglio-stampa foglio-continuo">
+      <header class="intestazione">
+        <div class="intestazione-logo">${LOGO}</div>
+        <div class="doc"><div class="tipo" style="font-size:19px">Listino interno</div>
+          <div class="meta">Aggiornato al ${esc(dataIt(oggi))}<br>Documento di lavoro</div></div>
+      </header>
+      <div class="dicitura" style="margin-bottom:14px">
+        <b>Uso interno.</b> Prezzi di riferimento per la compilazione dei preventivi, al netto di sconti,
+        imposte e maggiorazioni. Gli importi non costituiscono offerta al pubblico e vanno confermati caso per caso.
+      </div>
+      ${sezioni}
+      ${pieded()}
+    </div>`;
   document.title = `FC_Listino_Interno_${oggi}`;
   window.print();
 }
@@ -8210,8 +8956,10 @@ function bloccoTotali(t,etichettaImponibile,scontoTxt,senzaNota,titoloTotale){
   const labelTot = titoloTotale || "Totale Preventivo";
   h+=`<div class="riga totale"><span>${labelTot}</span><span class="num">${euro(t.netto)}</span></div>`;
   const d=senzaNota?"":dicituraFiscale(t);
-  if(d) h+=`<div class="nota">${d}</div>`;
-  return `<div class="totali"><div class="box">${h}</div></div>`;
+  const noteCol = d
+    ? `<div class="totali-note"><div class="totali-note-tit">Note fiscali</div><p class="nota">${d}</p></div>`
+    : `<div class="totali-note"></div>`;
+  return `<div class="totali">${noteCol}<div class="box">${h}</div></div>`;
 }
 
 function pieded(p){
@@ -8230,155 +8978,183 @@ function pieded(p){
     </div>
   </footer>`;
 }
+
+function stimaIngombroStampa(p){
+  const voci = Array.isArray(p?.voci) ? p.voci : [];
+  let righeVoci = 0;
+  voci.forEach(v => {
+    const descLen = String(v?.desc || "").trim().length;
+    const righeDesc = descLen > 0 ? Math.ceil(descLen / 72) : 0;
+    righeVoci += 1.9 + righeDesc;
+  });
+  const introLen = String(p?.progetto?.intro || "").trim().length;
+  const extraIntro = introLen > 240 ? Math.ceil((introLen - 240) / 105) : 0;
+  const ingombroP1 = righeVoci + extraIntro;
+  const pagina1Compatta = voci.length <= 4 && ingombroP1 <= 16;
+  return {
+    totVoci: voci.length,
+    ingombroP1,
+    pagina1Compatta
+  };
+}
+
 function generaHtmlPaginePreventivo(p, t){
   if(!p) p = raccogli();
   if(!t) t = (typeof totaliPreventivo === "function" ? totaliPreventivo(p) : totali());
   const haFirma = usaFirmaAutografa();
-  
-  const generaRighe=(lista, startIdx=1)=>lista.map((v, i)=>`<tr>
-      <td><span class="v-nome">${startIdx + i}. ${esc(v.nome)}</span>${v.desc?`<span class="v-desc">${esc(v.desc)}</span>`:""}</td>
-      <td class="num">${v.q}</td><td class="num">${euro(v.p)}</td><td class="num">${euro(v.q*v.p)}</td></tr>`).join("");
-  
-  const scheda=[["Titolo",p.progetto.titolo],["Tipologia",p.progetto.tipo],["Location",p.progetto.luogo],
-                ["Giornate",p.progetto.giornate],["Consegna",p.progetto.consegna]]
-      .filter(r=>r[1]).map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join("");
-  
-  const opz=p.opzioni.length?`<div class="sezione" style="margin-top:3.5mm">Opzioni su richiesta</div>
-      <table class="voci"><tbody>${p.opzioni.map(o=>`<tr>
+  const voci = Array.isArray(p.voci) ? p.voci : [];
+  const opzioni = Array.isArray(p.opzioni) ? p.opzioni : [];
+  const incluso = Array.isArray(p.incluso) ? p.incluso : [];
+  const escluso = Array.isArray(p.escluso) ? p.escluso : [];
+  const condizioni = Array.isArray(p.condizioni) ? p.condizioni : [];
+  const cliente = p.cliente || {};
+  const progetto = p.progetto || {};
+
+  const generaRighe=(lista, startIdx=1)=>lista.map((v, i)=>{
+    const idxFmt = String(startIdx + i).padStart(2, "0");
+    return `<tr class="voice-item">
+      <td>
+        <span class="v-nome"><span class="v-idx">${idxFmt}</span>${esc(v.nome)}</span>
+        ${v.desc?`<span class="v-desc">${esc(v.desc)}</span>`:""}
+      </td>
+      <td class="num">${v.q}</td>
+      <td class="num">${euro(v.p)}</td>
+      <td class="num col-totale">${euro(v.q*v.p)}</td>
+    </tr>`;
+  }).join("");
+
+  const scheda=[
+    ["Titolo", progetto.titolo, true],
+    ["Tipologia", progetto.tipo, false],
+    ["Location", progetto.luogo, false],
+    ["Giornate", progetto.giornate, false],
+    ["Consegna", progetto.consegna, false]
+  ]
+    .filter(r=>r[1])
+    .map(r=>`<div class="spec-item${r[2]?" spec-full":""}"><dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd></div>`)
+    .join("");
+
+  const tabellaVoci = `<table class="voci">
+    <colgroup>
+      <col style="width:62%">
+      <col style="width:10%">
+      <col style="width:14%">
+      <col style="width:14%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Descrizione Prestazione</th>
+        <th class="num">Q.tà</th>
+        <th class="num">Unitario</th>
+        <th class="num">Totale</th>
+      </tr>
+    </thead>
+    <tbody>${generaRighe(voci, 1)}</tbody>
+  </table>`;
+
+  const opz = opzioni.length ? `<div class="sezione">Opzioni su richiesta</div>
+    <table class="voci voci-opzioni">
+      <colgroup>
+        <col style="width:82%">
+        <col style="width:18%">
+      </colgroup>
+      <tbody>${opzioni.map(o=>`<tr class="voice-item">
         <td><span class="v-nome">${esc(o.nome)}</span>${o.desc?`<span class="v-desc">${esc(o.desc)}</span>`:""}</td>
-        <td class="num" style="width:28mm">${euro(o.p)}</td></tr>`).join("")}</tbody></table>`:"";
-  
-  const comprende=(p.incluso.length||p.escluso.length)?`<div class="sezione" style="margin-top:2mm">Cosa comprende</div>
-      <div class="due-colonne">
-        <div class="col-card"><div class="etichetta-incluso">✓ Incluso nell'offerta</div><ul>${p.incluso.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>
-        <div class="col-card escluso"><div class="etichetta-escluso">✕ Non incluso nell'offerta</div><ul>${p.escluso.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>
-      </div>`:"";
+        <td class="num col-totale">${euro(o.p)}</td>
+      </tr>`).join("")}</tbody>
+    </table>` : "";
 
-  const condCards = p.condizioni.length ? `<div class="sezione" style="margin-top:2mm">Condizioni contrattuali</div>
-      <div class="condizioni-grid">${p.condizioni.map((c, i)=>{
-        const isUltimoDispari = (i === p.condizioni.length - 1) && (p.condizioni.length % 2 !== 0);
-        return `<div class="cond-card"${isUltimoDispari?' style="grid-column: 1 / -1"':''}>
-          <div class="cond-tit">${esc(c[0])}</div><div class="cond-txt">${esc(c[1])}</div>
-        </div>`;
-      }).join("")}</div>` : "";
+  const comprende = (incluso.length || escluso.length) ? `<div class="sezione">Cosa comprende</div>
+    <div class="due-colonne">
+      <div class="col-card">
+        <div class="etichetta-incluso">Incluso nell'offerta</div>
+        <ul>${incluso.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+      </div>
+      <div class="col-card escluso">
+        <div class="etichetta-escluso">Escluso dall'offerta</div>
+        <ul>${escluso.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+      </div>
+    </div>` : "";
 
-  const bloccoAccettazione = `<section class="accettazione">
+  const condCards = condizioni.length ? `<div class="sezione">Condizioni contrattuali</div>
+    <div class="condizioni-grid">${condizioni.map((c, i)=>{
+      const isUltimoDispari = (i === condizioni.length - 1) && (condizioni.length % 2 !== 0);
+      return `<div class="cond-card clause${isUltimoDispari?" clause-full":""}">
+        <div class="cond-tit">${esc(c[0])}</div>
+        <div class="cond-txt">${esc(c[1])}</div>
+      </div>`;
+    }).join("")}</div>` : "";
+
+  const bloccoAccettazione = `<section class="accettazione sign-area">
     <div class="tit">Accettazione e Conferma d'Ordine</div>
     <p>Per accettare il presente preventivo, restituire copia firmata via email a <a href="mailto:${IO.mail}">${IO.mail}</a> oppure rispondere per iscritto con la formula «confermo il preventivo N. ${esc(p.numero)}».</p>
     <div class="firme">
-      <div class="f"><div class="linea"></div><div class="did">Il Committente (Data e Firma per accettazione)</div></div>
-      <div class="f"><div class="linea">${haFirma?`<img src="${FIRMA_AUTOGRAFA_PNG}" class="img-firma-auto" alt="Firma Federico Coletta">`:""}</div><div class="did">${IO.nome} · Federico Coletta</div></div>
+      <div class="f">
+        <div class="linea"></div>
+        <div class="did">Il Committente · Data e firma per accettazione</div>
+      </div>
+      <div class="f">
+        <div class="linea">${haFirma?`<img src="${FIRMA_AUTOGRAFA_PNG}" class="img-firma-auto" alt="Firma ${esc(IO.nome)}">`:""}</div>
+        <div class="did">${esc(IO.nome)}</div>
+      </div>
     </div>
   </section>`;
 
-  const totVoci = p.voci.length;
-  let htmlPagine = "";
+  const introHtml = (progetto.saluto || progetto.titolo || progetto.intro)
+    ? `<section class="intro">
+        ${progetto.saluto?`<p>${esc(progetto.saluto)}</p>`:""}
+        <p>di seguito il preventivo${progetto.titolo?` per <b>${esc(progetto.titolo)}</b>`:""}.${progetto.intro?` ${esc(maiuscola(progetto.intro))}`:""}</p>
+      </section>`
+    : "";
 
-  if(totVoci <= 5) {
-    htmlPagine = `
-      <div class="foglio-stampa">
-        <header class="intestazione">
-          ${LOGO}
-          <div class="doc"><div class="tipo">PREVENTIVO</div>
-            <div class="meta">N. <b>${esc(p.numero)}</b> · Genzano di Roma, ${esc(dataIt(p.data))}<br>
-            ${p.validita?`Valido fino al <b>${esc(dataIt(p.validita))}</b>`:""}</div></div>
-        </header>
-        <section class="blocchi">
-          <div class="blocco"><div class="etichetta">Cliente</div>
-            <div class="nome">${esc(p.cliente.nome)}</div>
-            <div class="righe">${[p.cliente.ref,p.cliente.indirizzo,p.cliente.piva,
-              [p.cliente.email,p.cliente.tel].filter(Boolean).join(" · ")].filter(Boolean).map(esc).join("<br>")}</div>
-          </div>
-          <div class="blocco card"><div class="etichetta">Specifiche Progetto</div><dl>${scheda}</dl></div>
-        </section>
-        <section class="intro">
-          ${p.progetto.saluto?`<p>${esc(p.progetto.saluto)}</p>`:""}
-          <p>di seguito il preventivo per <b>${esc(p.progetto.titolo)}</b>. ${esc(maiuscola(p.progetto.intro))}</p>
-        </section>
+  const headerPrincipale = `<header class="intestazione">
+    <div class="intestazione-logo">${LOGO}</div>
+    <div class="doc">
+      <div class="tipo">PREVENTIVO</div>
+      <div class="meta">N. <b>${esc(p.numero)}</b> · Genzano di Roma, ${esc(dataIt(p.data))}<br>
+      ${p.validita?`Valido fino al <b>${esc(dataIt(p.validita))}</b>`:""}</div>
+    </div>
+  </header>`;
+
+  const blocchiClienteProgetto = `<section class="blocchi">
+    <div class="blocco blocco-cliente">
+      <div class="etichetta">Cliente</div>
+      <div class="nome">${esc(cliente.nome)}</div>
+      <div class="righe">${[cliente.ref,cliente.indirizzo,cliente.piva,
+        [cliente.email,cliente.tel].filter(Boolean).join(" · ")].filter(Boolean).map(esc).join("<br>")}</div>
+    </div>
+    <div class="blocco blocco-specifiche">
+      <div class="etichetta">Specifiche Progetto</div>
+      <dl class="spec-grid">${scheda}</dl>
+    </div>
+  </section>`;
+
+  const stima = stimaIngombroStampa(p);
+
+  if(stima.pagina1Compatta) {
+    // Preventivo corto (2-4 voci): Pagina 1 pulita + Allegato Contrattuale a Pagina 2
+    return `
+      <div class="foglio-stampa foglio-preventivo">
+        ${headerPrincipale}
+        ${blocchiClienteProgetto}
+        ${introHtml}
         <div class="sezione">Voci di preventivo</div>
-        <table class="voci"><thead><tr><th>Descrizione Prestazione</th><th class="num" style="width:16mm">Q.tà</th>
-          <th class="num" style="width:26mm">Prezzo unit.</th><th class="num" style="width:28mm">Totale</th></tr></thead>
-          <tbody>${generaRighe(p.voci, 1)}</tbody></table>
+        ${tabellaVoci}
         ${bloccoTotali(t,"Imponibile",p.sconto_txt,false,"Totale Preventivo")}
-        
         <div class="spazio-flessibile"></div>
         <div class="rimando-continua">Segue allegato contrattuale, condizioni e firme a Pagina 2 →</div>
         ${pieded(p)}
       </div>
 
-      <div class="foglio-stampa allegato-condizioni">
-        <header class="intestazione" style="margin-bottom:3mm">
-          ${LOGO}
-          <div class="doc"><div class="tipo" style="font-size:12pt">Allegato Contrattuale & Firme</div>
-            <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div></div>
-        </header>
-        ${comprende}
-        ${opz}
-        ${condCards}
-        ${bloccoAccettazione}
-        <div class="spazio-flessibile"></div>
-        ${pieded(p)}
-      </div>`;
-  } else {
-    const sogliaP1 = totVoci <= 8 ? Math.ceil(totVoci / 2) : 6;
-    const vociP1 = p.voci.slice(0, sogliaP1);
-    const vociP2 = p.voci.slice(sogliaP1);
-
-    htmlPagine = `
-      <div class="foglio-stampa">
-        <header class="intestazione">
-          ${LOGO}
-          <div class="doc"><div class="tipo">PREVENTIVO</div>
-            <div class="meta">N. <b>${esc(p.numero)}</b> · Genzano di Roma, ${esc(dataIt(p.data))}<br>
-            ${p.validita?`Valido fino al <b>${esc(dataIt(p.validita))}</b>`:""}</div></div>
-        </header>
-        <section class="blocchi">
-          <div class="blocco"><div class="etichetta">Cliente</div>
-            <div class="nome">${esc(p.cliente.nome)}</div>
-            <div class="righe">${[p.cliente.ref,p.cliente.indirizzo,p.cliente.piva,
-              [p.cliente.email,p.cliente.tel].filter(Boolean).join(" · ")].filter(Boolean).map(esc).join("<br>")}</div>
+      <div class="foglio-stampa allegato-condizioni inizia-nuova-pagina">
+        <header class="intestazione intestazione-compatta">
+          <div class="intestazione-logo">${LOGO}</div>
+          <div class="doc">
+            <div class="tipo">Allegato Contrattuale</div>
+            <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · ${esc(dataIt(p.data))}</div>
           </div>
-          <div class="blocco card"><div class="etichetta">Specifiche Progetto</div><dl>${scheda}</dl></div>
-        </section>
-        <section class="intro">
-          ${p.progetto.saluto?`<p>${esc(p.progetto.saluto)}</p>`:""}
-          <p>di seguito il preventivo per <b>${esc(p.progetto.titolo)}</b>. ${esc(maiuscola(p.progetto.intro))}</p>
-        </section>
-        <div class="sezione">Voci di preventivo (1/2)</div>
-        <table class="voci"><thead><tr><th>Descrizione Prestazione</th><th class="num" style="width:16mm">Q.tà</th>
-          <th class="num" style="width:26mm">Prezzo unit.</th><th class="num" style="width:28mm">Totale</th></tr></thead>
-          <tbody>${generaRighe(vociP1, 1)}</tbody></table>
-        
-        <div class="spazio-flessibile"></div>
-        <div class="rimando-continua">Segue continuazione voci, totali e opzioni a Pagina 2 →</div>
-        ${pieded(p)}
-      </div>
-
-      <div class="foglio-stampa">
-        <header class="intestazione" style="margin-bottom:3mm">
-          ${LOGO}
-          <div class="doc"><div class="tipo" style="font-size:12pt">Continuazione Voci & Totali</div>
-            <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · Pagina 2</div></div>
         </header>
-        <div class="sezione">Voci di preventivo (2/2)</div>
-        <table class="voci"><thead><tr><th>Descrizione Prestazione</th><th class="num" style="width:16mm">Q.tà</th>
-          <th class="num" style="width:26mm">Prezzo unit.</th><th class="num" style="width:28mm">Totale</th></tr></thead>
-          <tbody>${generaRighe(vociP2, sogliaP1 + 1)}</tbody></table>
-        
-        ${bloccoTotali(t,"Imponibile",p.sconto_txt,false,"Totale Preventivo")}
         ${opz}
-        
-        <div class="spazio-flessibile"></div>
-        <div class="rimando-continua">Segue allegato contrattuale, condizioni e firme a Pagina 3 →</div>
-        ${pieded(p)}
-      </div>
-
-      <div class="foglio-stampa allegato-condizioni">
-        <header class="intestazione" style="margin-bottom:3mm">
-          ${LOGO}
-          <div class="doc"><div class="tipo" style="font-size:12pt">Allegato Contrattuale & Firme</div>
-            <div class="meta">Rif. preventivo <b>${esc(p.numero)}</b> · Pagina 3</div></div>
-        </header>
         ${comprende}
         ${condCards}
         ${bloccoAccettazione}
@@ -8387,7 +9163,29 @@ function generaHtmlPaginePreventivo(p, t){
       </div>`;
   }
 
-  return htmlPagine;
+  // Preventivo articolato (5+ voci o descrizioni estese): flusso continuo multi-pagina intelligente
+  return `
+    <div class="foglio-stampa foglio-continuo">
+      ${headerPrincipale}
+      ${blocchiClienteProgetto}
+      ${introHtml}
+      <div class="sezione">Voci di preventivo</div>
+      ${tabellaVoci}
+      ${bloccoTotali(t,"Imponibile",p.sconto_txt,false,"Totale Preventivo")}
+      ${opz}
+
+      <div class="allegato-condizioni flusso-continuo">
+        <div class="allegato-header-inline">
+          <div class="tit-inline">Allegato Contrattuale &amp; Condizioni</div>
+          <div class="rif-inline">Rif. preventivo ${esc(p.numero)} · ${esc(dataIt(p.data))}</div>
+        </div>
+        ${comprende}
+        ${condCards}
+        ${bloccoAccettazione}
+      </div>
+
+      ${pieded(p)}
+    </div>`;
 }
 
 function generaHtmlSecondoDocumento(p, t){
@@ -8402,9 +9200,9 @@ function generaHtmlSecondoDocumento(p, t){
   const io = p.io || datiIo();
 
   const bloccoIo = `<div class="blocco"><div class="etichetta">${pIva?"Prestatore":"Prestatore d'opera"}</div>
-        <div class="nome">${IO.nome}</div>
-        <div class="righe">${IO.ruolo}<br>${io.indirizzo?esc(io.indirizzo)+"<br>":""}
-          ${(pIva&&io.piva)?"P. IVA "+esc(io.piva)+"<br>":""}${io.cf?"C.F. "+esc(io.cf)+"<br>":""}${IO.tel} · ${IO.mail}<br><a href="${IO.sito}" target="_blank">${IO.sito}</a></div>
+        <div class="nome">${esc(IO.nome)}</div>
+        <div class="righe">${esc(IO.ruolo)}<br>${io.indirizzo?esc(io.indirizzo)+"<br>":""}
+          ${(pIva&&io.piva)?"P. IVA "+esc(io.piva)+"<br>":""}${io.cf?"C.F. "+esc(io.cf)+"<br>":""}${esc(IO.tel)} · ${esc(IO.mail)}<br><a href="${IO.sito && IO.sito.startsWith('http') ? IO.sito : ('https://' + (IO.sito || 'federicoletta.com'))}" target="_blank">${esc(IO.sito)}</a></div>
       </div>`;
 
   const avvertenza = pIva
@@ -8417,36 +9215,50 @@ function generaHtmlSecondoDocumento(p, t){
        Il compenso non supera il limite annuo di € 5.000 oltre il quale è dovuta l'iscrizione alla Gestione Separata INPS.`;
 
   return `
-    <div class="foglio-stampa">
-    <header class="intestazione">
-      ${LOGO}
-      <div class="doc"><div class="tipo" style="font-size:14pt">${titolo}</div>
-        <div class="meta">Genzano di Roma, ${esc(dataIt(oggi))}<br>Rif. preventivo <b>${esc(p.numero)}</b></div></div>
-    </header>
-    <section class="blocchi">
-      ${bloccoIo}
-      <div class="blocco card"><div class="etichetta">Committente</div>
-        <div class="nome">${esc(p.cliente.nome)}</div>
-        <div class="righe">${[p.cliente.indirizzo,p.cliente.piva].filter(Boolean).map(esc).join("<br>")}</div>
+    <div class="foglio-stampa foglio-secondo">
+      <header class="intestazione">
+        <div class="intestazione-logo">${LOGO}</div>
+        <div class="doc">
+          <div class="tipo" style="font-size:18px">${titolo}</div>
+          <div class="meta">Genzano di Roma, ${esc(dataIt(oggi))}<br>Rif. preventivo <b>${esc(p.numero)}</b></div>
+        </div>
+      </header>
+      <section class="blocchi">
+        ${bloccoIo}
+        <div class="blocco"><div class="etichetta">Committente</div>
+          <div class="nome">${esc(p.cliente.nome)}</div>
+          <div class="righe">${[p.cliente.indirizzo,p.cliente.piva].filter(Boolean).map(esc).join("<br>")}</div>
+        </div>
+      </section>
+      <div class="sezione">${pIva?"Prestazione concordata":"Prestazione svolta"}</div>
+      <table class="voci">
+        <colgroup>
+          <col style="width:80%">
+          <col style="width:20%">
+        </colgroup>
+        <thead><tr><th>Descrizione Prestazione</th><th class="num">Importo</th></tr></thead>
+        <tbody><tr class="voice-item">
+          <td><span class="v-nome">${esc(p.progetto.titolo)}</span>
+          <span class="v-desc">${esc(p.voci.map(v=>v.nome).join(" · "))}${p.progetto.luogo?" · "+esc(p.progetto.luogo):""}</span></td>
+          <td class="num col-totale">${euro(compenso)}</td>
+        </tr></tbody>
+      </table>
+      ${bloccoTotali(Object.assign({},t,{imponibile:compenso,sconto:0}), pIva?"Compenso":"Compenso lordo", "", true, pIva?"Totale Documento":"Netto a pagare")}
+      <div class="dicitura">${avvertenza}</div>
+      <section class="pagamento">
+        <div class="col"><div class="etichetta">Modalità di pagamento</div>
+          <div class="val">Bonifico bancario</div>${io.iban?"IBAN "+esc(io.iban)+"<br>":""}Intestato a ${esc(IO.nome)}</div>
+        <div class="col"><div class="etichetta">Termini e Causale</div>
+          <div class="val">30 giorni data documento</div>Causale: ${esc(titolo)} rif. ${esc(p.numero)}${p.progetto.titolo?" · "+esc(p.progetto.titolo):""}</div>
+      </section>
+      <div class="firma-singola sign-area">
+        <div class="b">
+          <div class="linea">${haFirma?`<img src="${FIRMA_AUTOGRAFA_PNG}" class="img-firma-auto" alt="Firma ${esc(IO.nome)}">`:""}</div>
+          <div class="did">${esc(IO.nome)}</div>
+        </div>
       </div>
-    </section>
-    <div class="sezione">${pIva?"Prestazione concordata":"Prestazione svolta"}</div>
-    <table class="voci"><thead><tr><th>Descrizione Prestazione</th><th class="num" style="width:32mm">Importo</th></tr></thead>
-      <tbody><tr>
-        <td><span class="v-nome">${esc(p.progetto.titolo)}</span>
-        <span class="v-desc">${esc(p.voci.map(v=>v.nome).join(" · "))}${p.progetto.luogo?" · "+esc(p.progetto.luogo):""}</span></td>
-        <td class="num">${euro(compenso)}</td></tr></tbody></table>
-    ${bloccoTotali(Object.assign({},t,{imponibile:compenso,sconto:0}), pIva?"Compenso":"Compenso lordo", "", true, pIva?"Totale Documento":"Netto a pagare")}
-    <div class="dicitura">${avvertenza}</div>
-    <section class="pagamento">
-      <div class="col"><div class="etichetta">Modalità di pagamento</div>
-        <div class="val">Bonifico bancario</div>${io.iban?"IBAN "+esc(io.iban)+"<br>":""}Intestato a ${IO.nome}</div>
-      <div class="col"><div class="etichetta">Termini e Causale</div>
-        <div class="val">30 giorni data documento</div>Causale: ${esc(titolo)} rif. ${esc(p.numero)}${p.progetto.titolo?" · "+esc(p.progetto.titolo):""}</div>
-    </section>
-    <div class="firma-singola"><div class="b"><div class="linea">${haFirma?`<img src="${FIRMA_AUTOGRAFA_PNG}" class="img-firma-auto" alt="Firma Federico Coletta">`:""}</div><div class="did">${IO.nome} · Federico Coletta</div></div></div>
-    <div class="spazio-flessibile"></div>
-    ${pieded(p)}
+      <div class="spazio-flessibile"></div>
+      ${pieded(p)}
     </div>`;
 }
 
@@ -8484,6 +9296,7 @@ function stampaSecondoVerificato(p){
 }
 
 if(typeof window !== 'undefined'){
+  window.stimaIngombroStampa = stimaIngombroStampa;
   window.generaHtmlPaginePreventivo = generaHtmlPaginePreventivo;
   window.generaHtmlSecondoDocumento = generaHtmlSecondoDocumento;
   window.pieded = pieded;
@@ -8496,6 +9309,7 @@ if(typeof window !== 'undefined' && window.App){
     fiscalNotice: dicituraFiscale,
     totalsBlock: bloccoTotali,
     footer: pieded,
+    estimateLayout: stimaIngombroStampa,
     printQuote: stampaPreventivoVerificato,
     printProforma: stampaSecondoVerificato,
     generatePagesHtml: generaHtmlPaginePreventivo,
