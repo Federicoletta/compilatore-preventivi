@@ -1,14 +1,16 @@
 /* ==========================================================================
    FOGLIO EDITORIALE A4 UNIFICATO — ANTEPRIMA LIVE & STAMPA PDF
    Condiviso al 100% tra .doc-a4-root (anteprima) e #stampa (stampa @media print).
-   Palette:
-     Primario istituzionale: #1B4332 (Verde bosco / petrolio scuro)
-     Testo principale:       #18181B (Nero carbone)
-     Testo secondario:       #3F3F46 / #52525B
-     Neutro / Escluso:       #71717A
-     Divisori sottili:       #E4E4E7
-     Fondino caldo avorio:   #F8F8F6
-     Linee firma:            #A1A1AA
+   Brand Kit Ufficiale Federico Coletta:
+     Primario istituzionale: #0C4E54 (Titoli, intestazioni primarie, Totale)
+     Petrolio secondario:    #01696F (Occhielli, etichette sezione, sottotitoli, indici)
+     Ciano accento:          #1BA0AB (Filetto sinistro 2.5pt box intro e micro-dettagli)
+     Testo principale:       #1A1A1A
+     Testo secondario:       #6B6B6B
+     Sfondo caldo / righe:   #F4F3EF
+     Linee divisorie:        #D9D6CF
+     Linee firma:            #BDBBB5
+   Tipografia: DM Sans (titoli, brand, numeri totali) + Inter (testo e descrizioni)
    ========================================================================== */
 
 #stampa {
@@ -24,7 +26,7 @@
   html,
   body {
     background: #ffffff !important;
-    color: #18181B !important;
+    color: #1A1A1A !important;
     margin: 0 !important;
     padding: 0 !important;
     -webkit-print-color-adjust: exact !important;
@@ -86,11 +88,11 @@
   }
 
   .doc-a4-root table.voci tbody td {
-    padding: 9px 0;
+    padding: 9px 6px;
   }
 
   .doc-a4-root table.voci tbody td.num {
-    padding: 9px 0 9px 10px;
+    padding: 9px 6px 9px 10px;
   }
 
   .doc-a4-root .totali {
@@ -158,7 +160,7 @@
 
 .doc-a4-root {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-  color: #18181B;
+  color: #1A1A1A;
   font-size: 9px;
   line-height: 1.48;
   text-align: left;
@@ -195,7 +197,7 @@
   .a4-sheet-frame .allegato-condizioni.flusso-continuo {
     margin-top: 24px;
     padding-top: 24px;
-    border-top: 2px dashed #D4D4D8;
+    border-top: 2px dashed #D9D6CF;
   }
 }
 
@@ -213,21 +215,23 @@
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #D9D6CF;
   break-after: avoid;
   page-break-after: avoid;
 }
 
 .doc-a4-root .allegato-header-inline .tit-inline {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 13px;
   letter-spacing: -0.01em;
-  color: #1B4332;
+  color: #0C4E54;
 }
 
 .doc-a4-root .allegato-header-inline .rif-inline {
   font-size: 8px;
-  color: #71717A;
+  color: #6B6B6B;
   white-space: nowrap;
 }
 
@@ -244,7 +248,7 @@
   gap: 20px;
   padding-bottom: 14px;
   margin-bottom: 18px;
-  border-bottom: 1px solid #E4E4E7;
+  border-bottom: 1px solid #D9D6CF;
   break-inside: avoid;
   page-break-inside: avoid;
   break-after: avoid;
@@ -279,10 +283,10 @@
 }
 
 .doc-a4-root .intestazione .doc .tipo {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 23px;
-  color: #1B4332;
+  color: #0C4E54;
   letter-spacing: -0.02em;
   line-height: 1.05;
   margin: 0;
@@ -290,7 +294,7 @@
 
 .doc-a4-root .intestazione .doc .meta {
   font-size: 8.5px;
-  color: #52525B;
+  color: #6B6B6B;
   margin-top: 6px;
   line-height: 1.48;
   text-align: right;
@@ -298,7 +302,7 @@
 }
 
 .doc-a4-root .intestazione .doc .meta b {
-  color: #18181B;
+  color: #1A1A1A;
   font-weight: 600;
 }
 
@@ -313,6 +317,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.2;
+  color: #0C4E54;
 }
 
 .doc-a4-root .intestazione.intestazione-compatta .doc .meta {
@@ -327,7 +332,7 @@
   gap: 32px;
   align-items: start;
   padding-bottom: 18px;
-  border-bottom: 1px solid #E4E4E7;
+  border-bottom: 1px solid #D9D6CF;
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -341,12 +346,12 @@
 }
 
 .doc-a4-root .etichetta {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1B4332;
+  color: #01696F;
   margin-bottom: 8px;
   text-align: left;
   break-after: avoid;
@@ -354,24 +359,24 @@
 }
 
 .doc-a4-root .blocco .nome {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 13px;
-  color: #18181B;
+  color: #1A1A1A;
   line-height: 1.25;
   margin-bottom: 5px;
   text-align: left;
 }
 
 .doc-a4-root .blocco .righe {
-  color: #3F3F46;
+  color: #6B6B6B;
   font-size: 8.75px;
   line-height: 1.5;
   text-align: left;
 }
 
 .doc-a4-root .blocco .righe a {
-  color: #1B4332;
+  color: #0C4E54;
   text-decoration: none;
 }
 
@@ -392,12 +397,12 @@
 }
 
 .doc-a4-root .spec-item dt {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 600;
   font-size: 8px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #71717A;
+  color: #01696F;
   line-height: 1.25;
   margin: 0 0 2px 0;
   text-align: left;
@@ -407,22 +412,22 @@
   margin: 0;
   font-size: 9.5px;
   font-weight: 600;
-  color: #18181B;
+  color: #1A1A1A;
   line-height: 1.38;
   text-align: left;
 }
 
-/* ---------- Box Introduttivo (Avorio piatto + sola barra sinistra) ---------- */
+/* ---------- Box Introduttivo (Sabbia chiara #F4F3EF + filetto ciano #1BA0AB 2.5pt) ---------- */
 .doc-a4-root .intro {
   margin: 18px 0 22px;
   padding: 12px 16px;
-  background: #F8F8F6;
+  background: #F4F3EF;
   border: none;
-  border-left: 2.5px solid #1B4332;
+  border-left: 2.5pt solid #1BA0AB;
   border-radius: 0;
   font-size: 9px;
   line-height: 1.5;
-  color: #3F3F46;
+  color: #6B6B6B;
   text-align: left;
   break-inside: avoid;
   page-break-inside: avoid;
@@ -438,21 +443,21 @@
 }
 
 .doc-a4-root .intro b {
-  color: #18181B;
+  color: #1A1A1A;
   font-weight: 600;
 }
 
-/* ---------- Intestazioni di sezione ---------- */
+/* ---------- Intestazioni di sezione (Occhielli #01696F) ---------- */
 .doc-a4-root .sezione {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 8.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1B4332;
+  color: #01696F;
   margin: 22px 0 10px;
   padding-bottom: 6px;
-  border-bottom: 1px solid #E4E4E7;
+  border-bottom: 1px solid #D9D6CF;
   text-align: left;
   break-after: avoid;
   page-break-after: avoid;
@@ -479,15 +484,15 @@
 }
 
 .doc-a4-root table.voci thead th {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #52525B;
+  color: #01696F;
   text-align: left;
-  padding: 0 0 8px 0;
-  border-bottom: 1.5px solid #1B4332;
+  padding: 0 6px 8px 6px;
+  border-bottom: 1.5px solid #0C4E54;
 }
 
 .doc-a4-root table.voci thead th.num {
@@ -502,32 +507,37 @@
 }
 
 .doc-a4-root table.voci tbody td {
-  padding: 13px 0;
-  border-bottom: 1px solid #E4E4E7;
+  padding: 12px 6px;
+  border-bottom: 1px solid #D9D6CF;
   vertical-align: top;
   background: transparent;
   text-align: left;
 }
 
+.doc-a4-root table.voci tbody tr:nth-child(even) td {
+  background: #F4F3EF;
+}
+
 .doc-a4-root table.voci tbody td.num {
-  padding: 13px 0 13px 10px;
+  padding: 12px 6px 12px 10px;
   text-align: right;
   white-space: nowrap;
   font-size: 9.5px;
-  color: #3F3F46;
+  color: #6B6B6B;
   font-variant-numeric: tabular-nums lining-nums;
 }
 
 .doc-a4-root table.voci tbody td.num.col-totale {
-  font-weight: 600;
-  color: #18181B;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
+  font-weight: 700;
+  color: #1A1A1A;
 }
 
 .doc-a4-root .v-nome {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 10.5px;
-  color: #18181B;
+  color: #1A1A1A;
   line-height: 1.32;
   display: block;
   margin-bottom: 4px;
@@ -535,16 +545,17 @@
 }
 
 .doc-a4-root .v-idx {
-  color: #1B4332;
-  font-weight: 600;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
+  color: #01696F;
+  font-weight: 700;
   font-size: 9px;
-  margin-right: 4px;
+  margin-right: 5px;
   font-variant-numeric: tabular-nums;
 }
 
 .doc-a4-root .v-desc {
   display: block;
-  color: #3F3F46;
+  color: #6B6B6B;
   font-size: 8.8px;
   font-weight: 400;
   line-height: 1.48;
@@ -568,12 +579,12 @@
 }
 
 .doc-a4-root .totali-note-tit {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 7.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #71717A;
+  color: #01696F;
   margin-bottom: 4px;
   text-align: left;
 }
@@ -581,7 +592,7 @@
 .doc-a4-root .totali .nota {
   margin: 0;
   font-size: 7.5px;
-  color: #52525B;
+  color: #6B6B6B;
   line-height: 1.48;
   text-align: left;
 }
@@ -597,31 +608,32 @@
   gap: 12px;
   padding: 5px 2px;
   font-size: 9px;
-  color: #3F3F46;
-  border-bottom: 1px solid #E4E4E7;
+  color: #6B6B6B;
+  border-bottom: 1px solid #D9D6CF;
 }
 
 .doc-a4-root .totali .riga.att {
-  color: #52525B;
+  color: #6B6B6B;
 }
 
 .doc-a4-root .totali .riga .num {
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-variant-numeric: tabular-nums lining-nums;
-  font-weight: 600;
-  color: #18181B;
+  font-weight: 700;
+  color: #1A1A1A;
   white-space: nowrap;
   flex-shrink: 0;
   text-align: right;
 }
 
 .doc-a4-root .totali .riga.totale {
-  background: #1B4332 !important;
+  background: #0C4E54 !important;
   color: #ffffff !important;
   border-bottom: none;
   padding: 10px 14px;
   margin-top: 8px;
   border-radius: 2px;
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.03em;
@@ -636,6 +648,7 @@
 }
 
 .doc-a4-root .totali .riga.totale .num {
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0;
@@ -645,7 +658,7 @@
 .doc-a4-root .rimando-continua {
   text-align: right;
   font-size: 8px;
-  color: #71717A;
+  color: #6B6B6B;
   font-style: italic;
   margin-top: 14px;
   margin-bottom: 8px;
@@ -665,8 +678,9 @@
 }
 
 .doc-a4-root .col-card {
-  background: #F8F8F6;
+  background: #F4F3EF;
   border: none;
+  border-left: 2pt solid #1BA0AB;
   border-radius: 0;
   padding: 12px 14px;
   text-align: left;
@@ -674,16 +688,17 @@
 
 .doc-a4-root .col-card.escluso {
   background: transparent;
+  border-left: none;
   padding: 12px 4px;
 }
 
 .doc-a4-root .etichetta-incluso {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1B4332;
+  color: #01696F;
   margin-bottom: 8px;
   text-align: left;
   break-after: avoid;
@@ -691,12 +706,12 @@
 }
 
 .doc-a4-root .etichetta-escluso {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #71717A;
+  color: #6B6B6B;
   margin-bottom: 8px;
   text-align: left;
   break-after: avoid;
@@ -708,7 +723,7 @@
   padding: 0;
   list-style: none;
   font-size: 8.75px;
-  color: #3F3F46;
+  color: #1A1A1A;
   text-align: left;
 }
 
@@ -729,18 +744,18 @@
   position: absolute;
   left: 0;
   top: 0;
-  color: #1B4332;
+  color: #01696F;
   font-weight: 700;
   font-size: 8.5px;
 }
 
 .doc-a4-root .due-colonne .escluso ul {
-  color: #52525B;
+  color: #6B6B6B;
 }
 
 .doc-a4-root .due-colonne .escluso li::before {
   content: "—";
-  color: #71717A;
+  color: #6B6B6B;
   font-weight: 500;
 }
 
@@ -760,7 +775,7 @@
 .doc-a4-root .clause {
   background: transparent;
   border: none;
-  border-bottom: 1px solid #E4E4E7;
+  border-bottom: 1px solid #D9D6CF;
   border-radius: 0;
   padding: 0 0 10px 0;
   text-align: left;
@@ -773,12 +788,12 @@
 }
 
 .doc-a4-root .cond-tit {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1B4332;
+  color: #01696F;
   margin-bottom: 4px;
   text-align: left;
   break-after: avoid;
@@ -786,7 +801,7 @@
 }
 
 .doc-a4-root .cond-txt {
-  color: #3F3F46;
+  color: #6B6B6B;
   font-size: 8.6px;
   line-height: 1.48;
   text-align: left;
@@ -798,7 +813,7 @@
   margin-top: 20px;
   padding: 16px 0 6px;
   border: none;
-  border-top: 1px solid #E4E4E7;
+  border-top: 1px solid #D9D6CF;
   background: transparent;
   border-radius: 0;
   text-align: left;
@@ -807,12 +822,12 @@
 }
 
 .doc-a4-root .accettazione .tit {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
   font-size: 8.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1B4332;
+  color: #01696F;
   margin-bottom: 6px;
   text-align: left;
   break-after: avoid;
@@ -822,13 +837,13 @@
 .doc-a4-root .accettazione p {
   margin: 0 0 22px;
   font-size: 8.5px;
-  color: #52525B;
+  color: #6B6B6B;
   line-height: 1.48;
   text-align: left;
 }
 
 .doc-a4-root .accettazione a {
-  color: #1B4332;
+  color: #0C4E54;
   font-weight: 600;
   text-decoration: none;
 }
@@ -845,7 +860,7 @@
 }
 
 .doc-a4-root .firme .linea {
-  border-bottom: 1px solid #A1A1AA;
+  border-bottom: 1px solid #BDBBB5;
   height: 36px;
   position: relative;
 }
@@ -863,12 +878,12 @@
 }
 
 .doc-a4-root .firme .did {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 600;
   font-size: 8px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #52525B;
+  color: #6B6B6B;
   margin-top: 6px;
   text-align: left;
 }
@@ -876,10 +891,10 @@
 /* ---------- Footer ---------- */
 .doc-a4-root .pieded {
   margin-top: auto;
-  border-top: 1px solid #E4E4E7;
+  border-top: 1px solid #D9D6CF;
   padding-top: 10px;
   font-size: 7.5px;
-  color: #71717A;
+  color: #6B6B6B;
   line-height: 1.5;
   text-align: left;
   break-inside: avoid !important;
@@ -891,13 +906,13 @@
 }
 
 .doc-a4-root .pieded b {
-  color: #1B4332;
-  font-family: "DM Sans", Arial, sans-serif;
+  color: #0C4E54;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
 }
 
 .doc-a4-root .pieded a {
-  color: #3F3F46;
+  color: #1A1A1A;
   text-decoration: none;
 }
 
@@ -913,12 +928,12 @@
 /* ---------- Proforma / Nota di prestazione & Listino ---------- */
 .doc-a4-root .dicitura {
   margin-top: 18px;
-  background: #F8F8F6;
+  background: #F4F3EF;
   border: none;
-  border-left: 2.5px solid #1B4332;
+  border-left: 2.5pt solid #1BA0AB;
   padding: 12px 16px;
   font-size: 8.5px;
-  color: #3F3F46;
+  color: #6B6B6B;
   line-height: 1.5;
   text-align: left;
   break-inside: avoid;
@@ -926,7 +941,7 @@
 }
 
 .doc-a4-root .dicitura b {
-  color: #18181B;
+  color: #1A1A1A;
   font-weight: 600;
 }
 
@@ -936,8 +951,8 @@
   gap: 28px;
   margin-top: 18px;
   padding: 14px 0;
-  border-top: 1px solid #E4E4E7;
-  border-bottom: 1px solid #E4E4E7;
+  border-top: 1px solid #D9D6CF;
+  border-bottom: 1px solid #D9D6CF;
   background: transparent;
   break-inside: avoid;
   page-break-inside: avoid;
@@ -945,15 +960,15 @@
 
 .doc-a4-root .pagamento .col {
   font-size: 8.5px;
-  color: #52525B;
+  color: #6B6B6B;
   line-height: 1.48;
   text-align: left;
 }
 
 .doc-a4-root .pagamento .val {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 700;
-  color: #18181B;
+  color: #1A1A1A;
   font-size: 10px;
   margin: 4px 0;
 }
@@ -973,17 +988,17 @@
 }
 
 .doc-a4-root .firma-singola .linea {
-  border-bottom: 1px solid #A1A1AA;
+  border-bottom: 1px solid #BDBBB5;
   height: 36px;
   position: relative;
 }
 
 .doc-a4-root .firma-singola .did {
-  font-family: "DM Sans", Arial, sans-serif;
+  font-family: "DM Sans", "Inter", Arial, sans-serif;
   font-weight: 600;
   font-size: 8px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #52525B;
+  color: #6B6B6B;
   margin-top: 6px;
 }

@@ -1,7 +1,8 @@
 /* ==========================================================================
-   DESIGN TOKENS v2.0 — Palette Originale Ripristinata (Light & Dark Mode)
-   - Light Mode: Warm Stone (#EFEEE9) + Petrolio (#0C4E54) / Ottanio (#01696F) / Ciano (#1BA0AB)
-   - Dark Mode:  Deep Obsidian (#080B10) + Cyan/Teal Cinematic (#0077B6 / #00B4D8 / #38BDF8)
+   DESIGN TOKENS v2.1 — Brand Kit Ufficiale Federico Coletta (Light & Dark)
+   Light: Neutri caldi (#F4F3EF) + Petrolio (#0C4E54 / #01696F) + Ciano (#1BA0AB)
+   Dark:  Dark Mode ufficiale (#080B10 / #0E131B) + Blu/Ciano (#0077B6 / #00B4D8)
+   Tipografia: DM Sans (titoli, brand, totali) + Inter (UI e descrizioni)
    ========================================================================== */
 
 :root {
@@ -10,45 +11,46 @@
   --font-display: "DM Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* 60% Neutral Canvas (Originale) */
-  --bg-canvas: #EFEEE9;
+  /* 60% Neutral Canvas — Brand Identity */
+  --bg-canvas: #F4F3EF;
   --bg-surface: #FFFFFF;
   --bg-subtle: #F4F3EF;
-  --bg-hover: #EAE8E1;
+  --bg-hover: #ECEAE4;
   --bg-input: #FFFFFF;
 
-  /* 30% Structure & Typography (Originale) */
+  /* 30% Structure & Typography */
   --border-subtle: #D9D6CF;
-  --border-strong: #C2BEB5;
+  --border-strong: #BDBBB5;
   --text-primary: #1A1A1A;
   --text-secondary: #4A4A4A;
   --text-muted: #6B6B6B;
 
-  /* 10% Brand Accent — Petrolio & Ottanio Originale */
+  /* 10% Brand Accent — Petrolio & Ciano Istituzionale */
   --brand: #0C4E54;
   --brand-hover: #01696F;
   --brand-accent: #1BA0AB;
-  --brand-soft: #E3F0F1;
+  --brand-soft: #E6F2F3;
+  --brand-focus-ring: rgba(27, 160, 171, 0.24);
   --brand-text-on: #FFFFFF;
 
   /* Topbar istituzionale */
   --topbar-bg: #0C4E54;
   --topbar-text: #FFFFFF;
-  --topbar-muted: rgba(255, 255, 255, 0.8);
+  --topbar-muted: rgba(255, 255, 255, 0.74);
   --topbar-hover: rgba(255, 255, 255, 0.12);
-  --topbar-active: rgba(255, 255, 255, 0.22);
+  --topbar-active: rgba(27, 160, 171, 0.28);
 
-  /* Semantic Status (Originale) */
-  --status-ok: #3B6B1E;
-  --status-ok-bg: #E4F0DC;
+  /* Semantic Status */
+  --status-ok: #0F766E;
+  --status-ok-bg: #CCFBF1;
   --status-warn: #B45309;
   --status-warn-bg: #FEF3C7;
-  --status-info: #0C4E54;
-  --status-info-bg: #E3F0F1;
-  --status-danger: #A12C7B;
-  --status-danger-bg: #F7E9F1;
-  --status-neutral: #6B6B6B;
-  --status-neutral-bg: #EFEEE9;
+  --status-info: #01696F;
+  --status-info-bg: #E0F4F5;
+  --status-danger: #B91C1C;
+  --status-danger-bg: #FEE2E2;
+  --status-neutral: #4A4A4A;
+  --status-neutral-bg: #ECEAE4;
 
   /* Elevation & Radii */
   --radius-sm: 6px;
@@ -64,46 +66,42 @@
 [data-theme="dark"],
 [data-tema="dark"] {
   color-scheme: dark;
-
-  /* Deep Obsidian Surfaces (Originale) */
   --bg-canvas: #080B10;
   --bg-surface: #0E131B;
   --bg-subtle: #141A24;
   --bg-hover: #18202D;
   --bg-input: #141A24;
 
-  /* Structure & Typography */
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
   --text-primary: #F0F4F8;
-  --text-secondary: #B8C4D4;
+  --text-secondary: #CBD5E1;
   --text-muted: #8E9BAE;
 
-  /* Cinematic Teal / Cyan Brand (Originale) */
   --brand: #0077B6;
   --brand-hover: #00B4D8;
   --brand-accent: #38BDF8;
+  --brand-gradient: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
   --brand-soft: rgba(0, 180, 216, 0.16);
+  --brand-focus-ring: rgba(56, 189, 248, 0.25);
   --brand-text-on: #FFFFFF;
 
-  /* Topbar Dark */
-  --topbar-bg: rgba(11, 15, 22, 0.96);
+  --topbar-bg: #0B0F16;
   --topbar-text: #F0F4F8;
-  --topbar-muted: #8E9BAE;
-  --topbar-hover: rgba(255, 255, 255, 0.06);
-  --topbar-active: #1C2433;
+  --topbar-muted: rgba(240, 244, 248, 0.68);
+  --topbar-hover: rgba(255, 255, 255, 0.08);
+  --topbar-active: rgba(0, 180, 216, 0.24);
 
-  /* Semantic Status (Dark Originale) */
-  --status-ok: #34D399;
-  --status-ok-bg: rgba(16, 185, 129, 0.16);
+  --status-ok: #4ADE80;
+  --status-ok-bg: rgba(34, 197, 94, 0.16);
   --status-warn: #FBBF24;
   --status-warn-bg: rgba(245, 158, 11, 0.16);
   --status-info: #38BDF8;
-  --status-info-bg: rgba(0, 180, 216, 0.16);
-  --status-danger: #F08AB4;
-  --status-danger-bg: rgba(168, 56, 104, 0.2);
-  --status-neutral: #8E9BAE;
-  --status-neutral-bg: rgba(255, 255, 255, 0.08);
+  --status-info-bg: rgba(14, 165, 233, 0.16);
+  --status-danger: #F87171;
+  --status-danger-bg: rgba(239, 68, 68, 0.16);
+  --status-neutral: #CBD5E1;
+  --status-neutral-bg: rgba(203, 213, 225, 0.12);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
